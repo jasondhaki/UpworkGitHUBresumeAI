@@ -32,6 +32,22 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Render free-tier deploy abandoned; local demo + real Ollama backend is the plan until paid hosting
+
+**What changed:**
+- User tried the Render Blueprint deploy set up earlier this session and it didn't work. Decision: stop pursuing free-tier hosting for the live app — demo locally for now (which already works well: FastAPI + Docling + the new local-Ollama backend, see the entries below), and revisit real deployment once there's a paid hosting budget.
+- `render.yaml` was left in the repo, not removed — it's still valid config for a real (paid, non-RAM-capped) Render instance later, so no reason to throw it away.
+- Exact Render failure mode not yet captured in this entry — flagged as worth getting from the user (build failure vs. OOM vs. something else) so paid hosting later doesn't repeat it blind. Update this entry once known.
+
+**Why:**
+- Free-tier hosting was always a stretch for this app (512MB RAM against Docling's torch dependency, flagged before the attempt) — the GitHub Pages static preview (marketing pages only) and now-solid local demo (real backend, no more Gemini rate-limit friction thanks to the Ollama swap) cover the "show it to people" need in the meantime without more free-tier fighting.
+
+**Next steps:**
+- When paid hosting gets bought: `render.yaml` (or an equivalent for whatever host gets picked) is still the starting point; check RAM sizing explicitly against Docling before assuming any given tier will work.
+- Everything else from today's sessions (Ollama local backend, provider-swap seam, GitHub Pages static preview) stands independent of this — none of it depended on Render succeeding.
+
+---
+
 ## 2026-09-02 — Locked in qwen2.5:7b as local default, fixed a real .env-loading bug, generalized the provider-swap seam for a future paid backend
 
 **What changed:**
