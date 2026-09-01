@@ -51,6 +51,13 @@ There's no single test runner — each module has its own `smoke_test.py`, runna
 
 For the ones that call Gemini: this project deliberately keeps real API calls rare (see `CLAUDE.md`'s API call discipline) — most logic is tested against fake data first, with a real call reserved for verifying something new actually works end to end. Install `requirements-dev.txt` for the browser-based integration test in `scripts/test_walking_skeleton.py`.
 
+## Deployment
+
+Two deployed versions exist, because the two hosts have different constraints:
+
+- **Static preview (marketing pages only):** https://jasondhaki.github.io/UpworkGitHUBresumeAI/ — GitHub Pages, built by `scripts/build_static.py` into `docs/`. No backend: the intake form is replaced with a "run locally" card. Re-run the build script and commit `docs/` after any template/CSS change meant to reach this page.
+- **Live app (real analysis):** deployed via Render, using `render.yaml` as a Blueprint. Render was chosen over Vercel because Docling's CV-parsing dependencies (torch + layout models, 1.5–3GB) exceed Vercel's 250MB serverless function cap; Render runs a real container instead. In Render's dashboard: New → Blueprint → select this repo → it reads `render.yaml` and prompts for `GEMINI_API_KEY` (required) and `GITHUB_TOKEN` (optional, raises GitHub API rate limits) as secrets — enter them there, never commit them. Free-tier caveats: the instance sleeps after 15 minutes idle (cold start on wake), has 512MB RAM (Docling's torch dependency is the thing most likely to feel that ceiling), and has no persistent disk, so `data/app.db` and uploaded CVs survive between requests only while the instance stays warm — a redeploy or a sleep/wake cycle resets them.
+
 ## Project layout
 
 ```
