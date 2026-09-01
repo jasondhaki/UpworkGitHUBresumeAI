@@ -12,6 +12,26 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Two more real crash bugs found the same way; project finally has requirements.txt and a README
+
+**What changed:**
+- Asked directly "what's left that doesn't need Gemini" — answered by finding two more real bugs using the same technique that found the Docling one: deliberately simulate the failure rather than assume, and check whether it's actually caught.
+- **`github_parser.py`**: simulated a network failure (pointed the client at an unreachable host) and confirmed `httpx.ConnectTimeout` propagated completely uncaught — same bug shape, different module. Added `GitHubUnavailableError` and wired it into `main.py`.
+- **`app/llm/gemini_client.py`**: this one was subtler. The retry loop only caught `httpx.TimeoutException`, and a `ConnectTimeout` (used to test the GitHub fix) happens to be a `TimeoutException` subclass, so that case was already covered. But `httpx.ConnectError` — a *sibling* exception (connection actively refused, not a timeout) — is not a `TimeoutException` subclass, and confirmed by deliberately triggering a real connection-refused error (pointing at a closed local port) that it propagated completely uncaught through both the retry loop and `main.py`'s handlers. Fixed by broadening the retry loop to catch `httpx.RequestError` (the true parent covering every network-level failure) instead of just `TimeoutException`, while deliberately leaving genuine bad-status errors (a malformed request, e.g.) un-retried — retrying those wastes attempts on something retrying can't fix. Simplified all three `except` clauses in `main.py` from `(httpx.TimeoutException, httpx.HTTPStatusError)` to the shared parent `httpx.HTTPError`, which correctly covers both the Gemini client's failure modes now.
+- Added **`requirements.txt`** (runtime deps, pinned to exact working versions) and **`requirements-dev.txt`** (adds Playwright/fpdf2/python-docx for fixture generation and browser testing) — genuinely missing until now; nobody, including a fresh clone of this repo, had any way to know what to install.
+- Added **`README.md`** — the public repo had no entry point at all. Covers what the project is, setup, how to run it, how to run each module's `smoke_test.py`, project layout, and an honest "what's real vs. still a placeholder" section pointing at `BENCHMARK.md`'s confidence breakdown.
+- Full regression pass across every zero-Gemini smoke test plus a live no-input server check — all clean.
+
+**Why:**
+- Three uncaught-exception bugs in one build, all in the same shape (a specific exception subclass caught, its sibling not), suggests a pattern worth remembering generally: when catching network exceptions, catch the actual shared parent class (`httpx.RequestError` / `httpx.HTTPError`), not a specific subclass that happens to cover the one failure mode already tested. Narrow excepts silently miss siblings.
+- `requirements.txt` and `README.md` are the kind of gap that's invisible while working in an already-set-up environment (this one) and only surfaces the moment someone else — or future-you on a new machine — tries to actually use the repo. Worth checking for proactively, not just reactively when someone hits it.
+
+**Next steps:**
+- PENDING line unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Found and fixed a real crash bug (zero Gemini cost); confirmed Gemini quota is a tight intermittent trickle, not a clean reset
 
 **What changed:**

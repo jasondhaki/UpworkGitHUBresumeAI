@@ -9,6 +9,14 @@ current API against a real call first — don't assume from training data.
 Retries on 503 ("high demand" — seen repeatedly during this build, including
 during initial setup) and other 5xx/429 responses, since those are Google-side
 transient overload, not something a caller can fix by changing the request.
+Also retries on network-level failures (timeout, DNS, connection refused) --
+broadened from just httpx.TimeoutException after finding httpx.ConnectError
+(a sibling exception, not a TimeoutException subclass) propagated completely
+uncaught, verified by deliberately pointing this client at an unreachable
+host. A genuine bad-request-style HTTPStatusError (e.g. a malformed request,
+401, etc.) is deliberately NOT retried here -- retrying a client error three
+times wastes attempts on something retrying can't fix; it propagates
+immediately via resp.raise_for_status().
 """
 
 import json
@@ -55,7 +63,7 @@ def generate_json(prompt: str, response_schema: dict, timeout: float = 90.0) -> 
             data = resp.json()
             text = data["candidates"][0]["content"]["parts"][0]["text"]
             return json.loads(text)
-        except httpx.TimeoutException as e:
+        except httpx.RequestError as e:
             last_error = e
             continue
 

@@ -21,7 +21,12 @@ from fastapi.templating import Jinja2Templates
 from app.generation.title_overview import generate_title_and_overview
 from app.ingestion.cv_parser import parse_cv_to_claims
 from app.ingestion.file_router import InvalidDocumentError, ScannedDocumentError
-from app.ingestion.github_parser import GitHubRateLimitError, GitHubUserNotFoundError, parse_github_to_claims
+from app.ingestion.github_parser import (
+    GitHubRateLimitError,
+    GitHubUnavailableError,
+    GitHubUserNotFoundError,
+    parse_github_to_claims,
+)
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.engine import score_profile
 from app.storage import get_analysis_run, list_analysis_runs, save_analysis_run, save_uploaded_file
@@ -61,21 +66,19 @@ def analyze(
             cv_claims = parse_cv_to_claims(str(stored_path), freelancer_id="fl_stub")
         except (ScannedDocumentError, InvalidDocumentError) as e:
             return templates.TemplateResponse(request, "error.html", {"message": str(e)})
-        except (httpx.TimeoutException, httpx.HTTPStatusError):
+        except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
             return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
 
     try:
         upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
-    except (httpx.TimeoutException, httpx.HTTPStatusError):
+    except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
         return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
 
     github_claims = []
     if github_username.strip():
         try:
             github_claims = parse_github_to_claims(github_username.strip(), "fl_stub")
-        except GitHubUserNotFoundError as e:
-            return templates.TemplateResponse(request, "error.html", {"message": str(e)})
-        except GitHubRateLimitError as e:
+        except (GitHubUserNotFoundError, GitHubRateLimitError, GitHubUnavailableError) as e:
             return templates.TemplateResponse(request, "error.html", {"message": str(e)})
 
     claims = cv_claims + upwork_claims + github_claims
@@ -97,7 +100,7 @@ def analyze(
     generated = None
     try:
         generated = generate_title_and_overview(claims, STUB_BENCHMARK.title_formula)
-    except (httpx.TimeoutException, httpx.HTTPStatusError):
+    except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
         pass
 
     result = score_profile(

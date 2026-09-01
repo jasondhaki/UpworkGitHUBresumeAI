@@ -37,6 +37,15 @@ class GitHubRateLimitError(Exception):
     pass
 
 
+class GitHubUnavailableError(Exception):
+    """Network-level failure talking to GitHub (timeout, DNS, connection
+    refused) — distinct from a 404/403 response, which means GitHub answered
+    but said no. Found by deliberately simulating a network failure (pointing
+    at an unreachable host): httpx.ConnectTimeout propagated all the way to
+    main.py uncaught before this fix, the same bug shape as the Docling
+    ConversionError case."""
+
+
 def _headers() -> dict:
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "ai5k-profile-intelligence"}
     token = os.environ.get("GITHUB_TOKEN")
@@ -46,12 +55,15 @@ def _headers() -> dict:
 
 
 def _fetch_repos(username: str) -> list[dict]:
-    resp = httpx.get(
-        f"{GITHUB_API_BASE}/users/{username}/repos",
-        params={"sort": "pushed", "per_page": 100},
-        headers=_headers(),
-        timeout=30.0,
-    )
+    try:
+        resp = httpx.get(
+            f"{GITHUB_API_BASE}/users/{username}/repos",
+            params={"sort": "pushed", "per_page": 100},
+            headers=_headers(),
+            timeout=30.0,
+        )
+    except httpx.RequestError as e:
+        raise GitHubUnavailableError(f"Couldn't reach GitHub's API: {e}") from e
     if resp.status_code == 404:
         raise GitHubUserNotFoundError(f"GitHub user '{username}' not found")
     if resp.status_code == 403 and "rate limit" in resp.text.lower():
