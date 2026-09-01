@@ -16,6 +16,7 @@ Playwright timeout, not by reasoning about it in advance.
 import httpx
 from fastapi import FastAPI, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.generation.title_overview import generate_title_and_overview
@@ -32,7 +33,8 @@ from app.scoring.engine import score_profile
 from app.storage import get_analysis_run, list_analysis_runs, save_analysis_run, save_uploaded_file
 from app.stub_data import STUB_BENCHMARK
 
-app = FastAPI(title="AI5K Profile Intelligence — Phase A skeleton")
+app = FastAPI(title="AI5K Profile Intelligence")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 GEMINI_UNAVAILABLE_MESSAGE = (

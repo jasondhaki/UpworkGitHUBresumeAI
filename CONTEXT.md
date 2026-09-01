@@ -32,6 +32,29 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Real UI/UX design pass: the app now looks like a considered product, not a walking skeleton
+
+**What changed:**
+- User needs to present this to their boss and asked for real visual design, not just functional HTML — a deliberate scope addition, not creep (explicitly requested). Loaded the `frontend-design` skill before touching anything, per its process: named a concrete design concept before building rather than defaulting to a generic dashboard look.
+- **Design concept**: an "evidence ledger," not a dashboard — this app's real differentiator (every claim carries a tier T1-T8 and a weight, nothing unproven gets published) became the actual visual system rather than decoration bolted onto a generic template. Cool paper background (not the cliché warm-cream), ink-dark text, a brass/ochre accent reserved for *verified* evidence, muted slate for *unverified*, brick-red for blocking/liability flags — every color is tied to what the data means. Type: the IBM Plex family used as one designed system (Serif for display, Sans for body, Mono for data/scores/tiers), not a generic pairing.
+- **Signature element**: evidence "tier stamps" whose visual weight (opacity, border fill) is set directly from the claim's real `weight` value in the markup (`style="--strength: {{ claim.weight }}"`), not a fixed per-tier lookup baked into CSS — the design IS the data. Confirmed visually in a real screenshot: T1 (client-verified) renders solid and confident, T8 (self-declared) nearly disappears, making "don't trust unproven claims" visible before reading a single number.
+- Skipped the generic circular-progress-ring score treatment (explicitly flagged by the design skill as the template answer) in favor of a certification-stamp frame around the score numeral: solid brass border when real evidence backs it, dashed/faint border when the evidence cap has kicked in — the visual state is driven by the same `result.capped` boolean the backend already computes, not a separate decorative choice.
+- Dimension bars get a target *tick mark* (a thin vertical line at the benchmark target position) rather than a second bar or a percentage label — reads like a measurement instrument, and is directly computed from real `dimension.target` values.
+- Generated title/overview get footnote-style numbered citation markers (with hover tooltips showing the backing claim's tier and text) instead of a flat "sourced from: id1, id2" list — refactored into a Jinja macro to avoid duplicating the logic between title and overview.
+- Built as a proper shared system: `app/static/style.css` (design tokens + components) + `app/templates/base.html` (shared header/layout), with `index.html`/`result.html`/`runs.html`/`error.html` all extending it — not 4 separately inline-styled pages like before. Wired static file serving into `main.py`.
+- Rewrote copy throughout in the product's own voice per the design skill's writing guidance: "Open a case" / "Fix before publishing" / "Where to focus next" / "Evidence ledger" — active voice, plain terms, tied to what the system actually does, not generic SaaS-dashboard language.
+- **Verified visually, not just functionally**: screenshotted every page (intake, results — both a withheld-generation case and a full case with real generated content built from fake data to check the citation styling — error page, runs history) at desktop and mobile widths, self-critiqued, and fixed two real issues found this way: the raw OS-styled file-upload button clashing with the rest of the form, and a legend marker shape that didn't match the actual tick-mark style it was explaining.
+
+**Why:**
+- Loading the design skill first and naming a concrete concept before writing any CSS is what kept this from becoming a generic dashboard — the tier-stamp system specifically only exists because the brief was "what does *this* product's real content look like," not "what does a results page usually look like."
+- Screenshotting and self-critiquing rather than just trusting the code to look right caught two real, fixable issues that reading the HTML/CSS wouldn't have surfaced.
+
+**Next steps:**
+- PENDING line unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Found and fixed a real crash bug (zero Gemini cost); confirmed Gemini quota is a tight intermittent trickle, not a clean reset
 
 **What changed:**

@@ -1,65 +1,129 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Result — AI5K Profile Intelligence</title></head>
-<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
-  <p><a href="/">&larr; back</a> | <a href="/runs">past runs</a>{% if run_id %} | saved as {{ run_id }}{% endif %}</p>
+{% extends "base.html" %}
+{% block title %}Case {{ run_id[:8] if run_id else '' }} — AI5K{% endblock %}
+
+{% macro citations(spans) %}
+  <div class="citation-list">
+    {% for s in spans %}
+      {% set matched = claims|selectattr('claim_id', 'equalto', s.claim_id)|list %}
+      <span class="citation-num"{% if matched %} title="{{ matched[0].tier.value }} · {{ matched[0].text[:90] }}"{% endif %}>{{ loop.index }}</span>
+    {% endfor %}
+    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint);">traced to {{ spans|length }} claim{{ 's' if spans|length != 1 }}</span>
+  </div>
+{% endmacro %}
+
+{% block content %}
+
   {% if benchmark.provisional %}
-  <p style="background:#fff3cd; border:1px solid #f0ad4e; padding:0.75rem; border-radius:4px;">
-    <strong>Provisional benchmark:</strong> the "{{ benchmark.niche }}" benchmark this score is measured
-    against is a best-guess estimate, not built from real competitor profiles yet ({{ benchmark.source_notes }}).
-    Treat the numbers below as directional until it's replaced with real data.
-  </p>
+  <div class="banner">
+    <strong>Provisional benchmark.</strong> The "{{ benchmark.niche }}" benchmark this case is measured
+    against is a best-guess estimate, not built from real competitor profiles yet. Treat the numbers
+    below as directional until it's replaced with real data.
+  </div>
   {% endif %}
-  <h1>Readiness: {{ result.readiness }} / 100{% if result.capped %} (capped — evidence is self-declared only){% endif %}</h1>
 
-  <h2>Dimensions</h2>
-  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width:100%">
-    <tr><th>Dimension</th><th>Current</th><th>Target</th><th>Weight</th></tr>
+  <div class="result-head">
+    <div class="score-stamp {% if result.capped %}capped{% endif %}">
+      <div class="score-number">{{ result.readiness }}</div>
+      <div class="score-max">/ 100</div>
+    </div>
+    <div class="result-head-copy">
+      <p class="eyebrow">Case {{ run_id[:8] if run_id else 'unsaved' }}</p>
+      <h1>Readiness reading</h1>
+      {% if result.capped %}
+      <p>Every claim on file is self-declared, with no corroboration. The score is capped at 30 regardless of how the other dimensions score — a profile with no proof cannot score well, by design.</p>
+      {% else %}
+      {% set source_count = claims|map(attribute='source_type')|map(attribute='value')|unique|list|length %}
+      <p>Computed from {{ claims|length }} claim{{ 's' if claims|length != 1 }} across {{ source_count }} source{{ 's' if source_count != 1 }}.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Dimensions</h2>
+    <p class="section-caption">Current standing against this niche's benchmark target, by weight.</p>
     {% for name, d in result.dimensions.items() %}
-    <tr><td>{{ name }}</td><td>{{ "%.1f"|format(d.current) }}</td><td>{{ "%.1f"|format(d.target) }}</td><td>{{ d.weight }}</td></tr>
+    <div class="dim-row">
+      <div class="dim-name">{{ name.replace('_', ' ') }}</div>
+      <div class="dim-track">
+        <div class="dim-fill" style="width: {{ d.current }}%"></div>
+        <div class="dim-target-tick" style="left: {{ d.target }}%"></div>
+      </div>
+      <div class="dim-value"><b>{{ "%.0f"|format(d.current) }}</b> / {{ "%.0f"|format(d.target) }}</div>
+    </div>
     {% endfor %}
-  </table>
+    <p class="legend"><span class="ex"></span>tick marks the benchmark target — not a perfect 100</p>
+  </div>
 
-  <h2>Top gaps</h2>
-  {% if result.gaps %}
-  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width:100%">
-    <tr><th>Dimension</th><th>Current</th><th>Target</th><th>Gain</th><th>Effort (hrs)</th><th>Priority</th></tr>
-    {% for g in result.gaps %}
-    <tr><td>{{ g.dimension }}</td><td>{{ "%.1f"|format(g.current) }}</td><td>{{ "%.1f"|format(g.target) }}</td><td>{{ g.gain }}</td><td>{{ g.effort_hours }}</td><td>{{ g.priority }}</td></tr>
+  <div class="section">
+    <h2>Fix before publishing</h2>
+    <p class="section-caption">Liabilities, not optimization opportunities. These sit outside the ranked list below regardless of effort.</p>
+    {% if result.blocking %}
+      {% for b in result.blocking %}
+      <div class="flag-card">
+        {{ b.description }}
+        <span class="reason">{{ b.reason }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty-note">Nothing flagged.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Where to focus next</h2>
+    <p class="section-caption">Ranked by score points returned per hour of effort.</p>
+    {% if result.gaps %}
+      {% for g in result.gaps %}
+      <div class="gap-row">
+        <div>
+          <span class="gap-rank">{{ loop.index }}</span>
+          <span class="gap-name">{{ g.dimension.replace('_', ' ') }}</span>
+        </div>
+        <div class="gap-detail">{{ "%.0f"|format(g.current) }} &rarr; {{ "%.0f"|format(g.target) }} · {{ g.effort_hours }} hr</div>
+        <div class="gap-gain">+{{ g.gain }} pts</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty-note">No gaps to show — no input yet, or everything's already at target.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Rewritten profile</h2>
+    <p class="section-caption">A claim with no source span is never published — it's withheld instead.</p>
+
+    <div class="generated-block">
+      <div class="generated-label">Title</div>
+      {% if result.generated.title %}
+        <div class="generated-title">{{ result.generated.title.text }}</div>
+        {{ citations(result.generated.title.source_spans) }}
+      {% else %}
+        <p class="withheld">Not enough grounded evidence yet to write a title that's fully traceable.</p>
+      {% endif %}
+    </div>
+
+    <div class="generated-block">
+      <div class="generated-label">Overview</div>
+      {% if result.generated.overview %}
+        <div class="generated-overview">{{ result.generated.overview.text }}</div>
+        {{ citations(result.generated.overview.source_spans) }}
+      {% else %}
+        <p class="withheld">Proof needs T1&ndash;T4 evidence with a real number to build the overview on — not enough yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Evidence ledger</h2>
+    <p class="section-caption">Every claim behind the score above, strongest first.</p>
+    {% for c in claims|sort(attribute='weight', reverse=True) %}
+    <div class="ledger-row">
+      <div class="ledger-source">{{ c.source_type.value.replace('_paste', '') }}</div>
+      <span class="tier" style="--strength: {{ c.weight }}">{{ c.tier.value }}</span>
+      <div class="ledger-text">{{ c.text }}</div>
+      <div class="ledger-weight">{{ "%.2f"|format(c.weight) }}</div>
+    </div>
     {% endfor %}
-  </table>
-  {% else %}
-  <p>No gaps to show (no input, or everything already at target).</p>
-  {% endif %}
+  </div>
 
-  <h2>Blocking items</h2>
-  {% if result.blocking %}
-  <ul>{% for b in result.blocking %}<li>{{ b.description }} — {{ b.reason }}</li>{% endfor %}</ul>
-  {% else %}
-  <p>None.</p>
-  {% endif %}
-
-  <h2>Generated title</h2>
-  {% if result.generated.title %}
-  <p><strong>{{ result.generated.title.text }}</strong></p>
-  <p><small>Traced to: {% for s in result.generated.title.source_spans %}{{ s.claim_id }}{% if not loop.last %}, {% endif %}{% endfor %}</small></p>
-  {% else %}
-  <p>Withheld — either not enough grounded evidence yet, or the AI step didn't complete. Not a bug: an ungrounded title is never published.</p>
-  {% endif %}
-
-  <h2>Generated overview</h2>
-  {% if result.generated.overview %}
-  <p>{{ result.generated.overview.text }}</p>
-  <p><small>Traced to: {% for s in result.generated.overview.source_spans %}{{ s.claim_id }}{% if not loop.last %}, {% endif %}{% endfor %}</small></p>
-  {% else %}
-  <p>Withheld — the proof section needs T1-T4 evidence with a real number to build on, and there isn't enough yet. Not a bug: an ungrounded overview is never published.</p>
-  {% endif %}
-
-  <h2>Claims used</h2>
-  <ul>
-    {% for c in claims %}
-    <li><strong>{{ c.source_type.value }}</strong> [{{ c.tier.value }}, weight {{ c.weight }}]: {{ c.text }}</li>
-    {% endfor %}
-  </ul>
-</body>
-</html>
+{% endblock %}

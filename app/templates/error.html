@@ -1,9 +1,9 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Error — AI5K Profile Intelligence</title></head>
-<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
-  <p><a href="/">&larr; back</a></p>
-  <h1>Couldn't process that</h1>
-  <p>{{ message }}</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Couldn't process that — AI5K{% endblock %}
+{% block content %}
+  <div class="error-card">
+    <h1>Couldn't process that</h1>
+    <p>{{ message }}</p>
+    <p style="margin-top: 16px;"><a href="/">&larr; Start a new case</a></p>
+  </div>
+{% endblock %}

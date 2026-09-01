@@ -1,22 +1,27 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Past runs — AI5K Profile Intelligence</title></head>
-<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
-  <p><a href="/">&larr; new analysis</a></p>
-  <h1>Past runs</h1>
+{% extends "base.html" %}
+{% block title %}Past cases — AI5K{% endblock %}
+{% block content %}
+  <section class="hero" style="padding-top: 40px;">
+    <p class="eyebrow">Archive</p>
+    <h1 style="font-size: 26px;">Past cases</h1>
+  </section>
+
   {% if runs %}
-  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width:100%">
-    <tr><th>When</th><th>Readiness</th><th></th></tr>
-    {% for r in runs %}
-    <tr>
-      <td>{{ r.created_at }}</td>
-      <td>{{ r.readiness }} / 100{% if r.capped %} (capped){% endif %}</td>
-      <td><a href="/runs/{{ r.run_id }}">view</a></td>
-    </tr>
-    {% endfor %}
+  <table class="runs-table">
+    <thead>
+      <tr><th>Opened</th><th>Readiness</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in runs %}
+      <tr>
+        <td>{{ r.created_at[:19].replace('T', ' ') }}</td>
+        <td class="score">{{ r.readiness }} / 100{% if r.capped %} · capped{% endif %}</td>
+        <td><a href="/runs/{{ r.run_id }}">view &rarr;</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
   {% else %}
-  <p>No saved runs yet.</p>
+  <p class="empty-note">No cases yet. <a href="/">Open one</a>.</p>
   {% endif %}
-</body>
-</html>
+{% endblock %}

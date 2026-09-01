@@ -1,27 +1,34 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>AI5K Profile Intelligence — Phase A skeleton</title></head>
-<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
-  <h1>AI5K Profile Intelligence</h1>
-  <p><em>CV, GitHub, and Upwork-paste ingestion are all real. Benchmark for this niche is provisional (see the results page).</em> <a href="/runs">Past runs &rarr;</a></p>
-  <form action="/analyze" method="post" enctype="multipart/form-data">
-    <p>
-      <label for="cv_file">CV (native PDF only — scans get rejected, not OCR'd)</label><br>
-      <input id="cv_file" name="cv_file" type="file" accept=".pdf">
-    </p>
-    <p>
-      <label for="github_username">GitHub username</label><br>
-      <input id="github_username" name="github_username" style="width:100%">
-    </p>
-    <p>
-      <label for="upwork_text">Upwork profile text (paste)</label><br>
-      <textarea id="upwork_text" name="upwork_text" rows="4" style="width:100%"></textarea>
-    </p>
-    <p>
-      <label for="stated_rate">Your stated hourly rate, USD (optional — used for the pricing_strategy dimension)</label><br>
-      <input id="stated_rate" name="stated_rate" type="number" step="1" min="0" style="width:100%">
-    </p>
-    <button type="submit">Analyze</button>
+{% extends "base.html" %}
+{% block content %}
+  <section class="hero">
+    <p class="eyebrow">New case</p>
+    <h1>Open a case</h1>
+    <p>Submit your evidence — a CV, a GitHub handle, your Upwork profile text — and get a readiness reading where every number traces back to exactly where it came from.</p>
+  </section>
+
+  <form class="card" action="/analyze" method="post" enctype="multipart/form-data">
+    <div class="field">
+      <label for="cv_file">CV</label>
+      <input id="cv_file" name="cv_file" type="file" accept=".pdf,.docx">
+      <span class="hint">Native PDF or DOCX. Scans get rejected, not OCR'd.</span>
+    </div>
+    <div class="field">
+      <label for="github_username">GitHub username</label>
+      <input id="github_username" name="github_username" type="text">
+      <span class="hint">Public, non-fork repositories become evidence directly — no interpretation step involved.</span>
+    </div>
+    <div class="field">
+      <label for="upwork_text">Upwork profile text</label>
+      <textarea id="upwork_text" name="upwork_text"></textarea>
+      <span class="hint">Paste your existing overview. A quoted client review counts as stronger evidence than a claim about yourself.</span>
+    </div>
+    <div class="field">
+      <label for="stated_rate">Stated hourly rate</label>
+      <input id="stated_rate" name="stated_rate" type="number" step="1" min="0" placeholder="e.g. 65">
+      <span class="hint">Optional. Used to check whether your rate is defensible given your evidence.</span>
+    </div>
+    <div class="form-footer">
+      <button class="btn" type="submit">Analyze &rarr;</button>
+    </div>
   </form>
-</body>
-</html>
+{% endblock %}
