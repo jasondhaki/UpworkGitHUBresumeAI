@@ -11,3 +11,12 @@ Solo demo project: AI5K Profile Intelligence System. Free-tier-only stack (no pr
   - **Next steps** — what's queued up for next time
 - Skip the update if nothing actually changed this session.
 - Periodically (the user will prompt for this, or do it proactively if the log is getting long) re-read the whole file and consider trimming or consolidating old entries once they stop being load-bearing for current decisions — this is a working log, not a permanent archive.
+
+## Gemini API call discipline
+
+Free-tier rate limits get eaten fast by iterative testing (hit this repeatedly on 2026-09-01 — see CONTEXT.md). Default behavior:
+
+- **While building or debugging**, don't call the real Gemini API to check whether code runs. Use fake/synthetic data instead — construct `Claim`/`Benchmark`/`Result` objects directly (see the existing `*/smoke_test*.py` files for the pattern) to test schemas, scoring math, routing, template rendering, etc. Almost everything in this codebase *except* `app/llm/gemini_client.py` itself and the two parsers that call it doesn't need a live call to verify.
+- **Make a real call when**: verifying a new or changed prompt/extraction schema for the first time, doing one deliberate end-to-end pass at the end of a phase or a meaningful chunk of work, or the user explicitly asks to run something real through the system.
+- **Batch it**: when a real call is needed, cover everything that changed in one deliberate test, not one call per small tweak. Treat each call as worth spending, not free to retry casually.
+- **This is a floor, not a ceiling**: at least one real end-to-end call before calling a phase done — several real bugs this session (an async/sync threading bug, a Docling API mismatch, a model-name 404, the 503 rate-limit pattern itself) only ever showed up under a live call, never from reading the code. Cutting real calls to zero would trade a rate-limit annoyance for shipping untested integration points.
