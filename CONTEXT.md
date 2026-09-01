@@ -32,6 +32,24 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Locked in qwen2.5:7b as local default, fixed a real .env-loading bug, generalized the provider-swap seam for a future paid backend
+
+**What changed:**
+- User asked which local model was actually better; rather than answer from priors, ran the same real Upwork-extraction test against both `llama3.2:3b` and `qwen2.5:7b` (3 runs each). Result: comparable reliability and speed (qwen: 38-90s, mostly ~40s; llama: 39-56s), but qwen correctly skipped the "pure rate/logistics" block (`"I charge $65/hour..."`) per the prompt's explicit instruction, while llama3.2:3b included it anyway. Set `qwen2.5:7b` as the default in both `.env` and `app/llm/ollama_client.py`'s fallback.
+- User then asked for the provider-swap seam to be safe for a future move to a paid API (Anthropic, or a better Gemini model) once this leaves demo stage. Two concrete changes: `GEMINI_MODEL` env var now overrides `gemini_client.py`'s hardcoded model name (same pattern `OLLAMA_MODEL` already had); `main.py`'s user-facing error message no longer hardcodes "Gemini" (it said "Gemini is likely under transient load" even when a different backend was active).
+- Making that error-message change surfaced a real, separate bug: `load_dotenv()` only lived in `gemini_client.py`. When `LLM_PROVIDER=ollama` is set, `client.py` never imports `gemini_client.py` at all — so `load_dotenv()` never ran, `.env` was never loaded, and the `LLM_PROVIDER` check in `client.py` saw an empty environment and silently fell through to Gemini regardless of what `.env` said. Caught this via a live Gemini 429 during a routine re-verification, despite `.env` explicitly setting `LLM_PROVIDER=ollama` — the bug was invisible in every earlier test this session because those all passed `LLM_PROVIDER=ollama` as an explicit shell env var, which bypasses `.env`/`load_dotenv()` entirely. Fixed by moving `load_dotenv()` into `client.py` itself, the actual dispatch point, so it runs before either backend is chosen. Re-verified live afterward using only `.env` (no explicit exports) — correctly picked `qwen2.5:7b` and succeeded.
+- README now documents the whole seam explicitly as the intended extension point: a future paid backend is one new `app/llm/<provider>_client.py` implementing the same `generate_json(prompt, response_schema) -> dict` contract, plus one `elif` branch in `client.py` — no ingestion/generation code changes required, and Gemini remains the default unless `LLM_PROVIDER` is explicitly set.
+
+**Why:**
+- The `.env`-loading bug is the kind of thing that would have silently undermined the entire point of today's local-model work (every future session assuming `.env`'s `LLM_PROVIDER=ollama` was actually being honored) had it not been caught by a live re-verification after a seemingly-cosmetic error-message change. Reinforces the CLAUDE.md discipline point: real calls catch real bugs that reading the code doesn't.
+- The user was explicit that this is demo-only tooling with a known production path (paid Anthropic/Gemini later) — the design goal here was zero-risk swapping, not building that future backend now (no Anthropic client was written; not asked for, would be speculative).
+
+**Next steps:**
+- Still waiting on Render deploy confirmation from the user (see the entry below this one).
+- If/when a paid backend actually gets added later, the seam is `app/llm/client.py` + a new `<provider>_client.py` matching the `generate_json` contract — no other file should need to change.
+
+---
+
 ## 2026-09-02 — Added a local-Ollama LLM backend; Render deploy kicked off (pending user confirmation)
 
 **What changed:**
