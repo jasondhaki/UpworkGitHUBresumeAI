@@ -1,10 +1,10 @@
-"""Walking skeleton (Phase A): the whole path runs from a browser.
-
-CV and Upwork-paste both go through real parsers now (Docling + Gemini for
-CV, Gemini alone for the Upwork paste). GitHub is still a stub — Phase B.
+"""Walking skeleton — Phase B's checkpoint is met: CV (Docling + Gemini),
+Upwork-paste (Gemini), and GitHub (deterministic, no Gemini — see
+app/ingestion/github_parser.py) all real, feeding a real scorer and real,
+grounding-validated title/overview generation (app/generation/).
 
 /analyze is a plain `def`, not `async def`, on purpose: it calls blocking sync
-code (Docling, sync HTTP to Gemini). An async endpoint runs directly on
+code (Docling, sync HTTP to Gemini/GitHub). An async endpoint runs directly on
 FastAPI's single event loop, so blocking work inside it would stall every
 other request; a sync `def` endpoint is automatically run in a thread pool by
 Starlette instead. Caught this by watching a real request hang past a 30s
@@ -19,11 +19,13 @@ from fastapi import FastAPI, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from app.generation.title_overview import generate_title_and_overview
 from app.ingestion.cv_parser import parse_cv_to_claims
 from app.ingestion.file_router import ScannedDocumentError
+from app.ingestion.github_parser import GitHubRateLimitError, GitHubUserNotFoundError, parse_github_to_claims
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.engine import score_profile
-from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES, stub_github_claim
+from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES
 
 app = FastAPI(title="AI5K Profile Intelligence — Phase A skeleton")
 templates = Jinja2Templates(directory="app/templates")
@@ -67,7 +69,15 @@ def analyze(
     except (httpx.TimeoutException, httpx.HTTPStatusError):
         return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
 
-    github_claims = stub_github_claim(github_username)
+    github_claims = []
+    if github_username.strip():
+        try:
+            github_claims = parse_github_to_claims(github_username.strip(), "fl_stub")
+        except GitHubUserNotFoundError as e:
+            return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+        except GitHubRateLimitError as e:
+            return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+
     claims = cv_claims + upwork_claims + github_claims
 
     result = score_profile(
@@ -76,6 +86,15 @@ def analyze(
         benchmark=STUB_BENCHMARK,
         manual_dimension_scores=STUB_MANUAL_SCORES,
     )
+
+    # Generation is additive, not load-bearing: if it fails, the score and gap list
+    # still stand on their own (matches the plan's own fallback: "drop generation,
+    # a score and a ranked gap list still proves the concept").
+    try:
+        result.generated = generate_title_and_overview(claims, STUB_BENCHMARK.title_formula)
+    except (httpx.TimeoutException, httpx.HTTPStatusError):
+        pass
+
     return templates.TemplateResponse(
         request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK}
     )

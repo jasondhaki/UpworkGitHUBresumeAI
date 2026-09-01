@@ -39,7 +39,23 @@
   <p>None.</p>
   {% endif %}
 
-  <h2>Claims used (CV + Upwork paste are real; GitHub is still a stub)</h2>
+  <h2>Generated title</h2>
+  {% if result.generated.title %}
+  <p><strong>{{ result.generated.title.text }}</strong></p>
+  <p><small>Traced to: {% for s in result.generated.title.source_spans %}{{ s.claim_id }}{% if not loop.last %}, {% endif %}{% endfor %}</small></p>
+  {% else %}
+  <p>Withheld — either not enough grounded evidence yet, or the AI step didn't complete. Not a bug: an ungrounded title is never published.</p>
+  {% endif %}
+
+  <h2>Generated overview</h2>
+  {% if result.generated.overview %}
+  <p>{{ result.generated.overview.text }}</p>
+  <p><small>Traced to: {% for s in result.generated.overview.source_spans %}{{ s.claim_id }}{% if not loop.last %}, {% endif %}{% endfor %}</small></p>
+  {% else %}
+  <p>Withheld — the proof section needs T1-T4 evidence with a real number to build on, and there isn't enough yet. Not a bug: an ungrounded overview is never published.</p>
+  {% endif %}
+
+  <h2>Claims used</h2>
   <ul>
     {% for c in claims %}
     <li><strong>{{ c.source_type.value }}</strong> [{{ c.tier.value }}, weight {{ c.weight }}]: {{ c.text }}</li>

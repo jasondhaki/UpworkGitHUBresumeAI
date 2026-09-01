@@ -14,7 +14,7 @@ with sync_playwright() as p:
         'One client wrote, "The workflow he built runs flawlessly and saved us thousands of dollars."'
     )
     page.set_input_files("#cv_file", "scripts/fixtures_sample_cv.pdf")
-    page.fill("#github_username", "octocat")
+    page.fill("#github_username", "torvalds")
     page.fill("#upwork_text", upwork_sample)
     page.click("button[type=submit]")
     page.wait_for_load_state("networkidle", timeout=90000)

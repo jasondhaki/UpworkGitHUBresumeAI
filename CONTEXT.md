@@ -10,6 +10,27 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-01 — Phase B checkpoint met: GitHub ingestion + grounded generation, all three sources real
+
+**What changed:**
+- Added a new default instruction to `CLAUDE.md`: don't spend real Gemini calls during iteration — build and test against fake/synthetic data by default (schemas, scoring, routing, templates all support this already), spend a real call only to verify a new/changed prompt for the first time and once per meaningful chunk of work at the end. Motivated by hitting rate limits/503s repeatedly from rapid testing. Explicitly a floor, not a ceiling: still requires at least one real end-to-end call before calling something done, since several real bugs this build only ever showed up under a live call.
+- Built `app/ingestion/github_parser.py`: GitHub username -> Claim records with **zero Gemini calls** — GitHub's API already returns structured facts (stars, language, push dates), so there's no unstructured prose to interpret and nothing for an LLM to extract. Claims are built deterministically; forks excluded (not demonstrated work by this person); tier is uniformly T2 for every included repo (tier reflects verification method, not popularity); source_span points at the real, clickable repo URL — stronger grounding than the text parsers since there's no interpretation step to validate at all. Verified against real accounts (`octocat`, `torvalds`).
+- Built `app/generation/title_overview.py`: title + overview generation, grounded by construction like ingestion is. Gemini drafts against the claim set; a validator re-reads every number in the draft against actual claim text before it's allowed through — a number that can't be traced gets the *whole field* withheld (not surgically edited, which risks broken grammar; and not published ungrounded). Tier restriction (overview's proof section must draw only from T1-T4 claims, per Section 3) is enforced structurally in the validator itself — checked against a T1-T4-only text pool regardless of what claim_id the model claims it used — not just left to prompt instruction, matching how every other grounding step in this build works.
+- Tested the grounding validator with fake data first (three cases: clean pass, fabricated number correctly rejected, real number from a wrong-tier claim correctly rejected) — zero Gemini calls, per the new discipline. Then spent exactly one real call to prove the LLM step itself works, using hardcoded claims matching real prior output rather than re-parsing CV/Upwork live (that would've spent 2 more calls testing prompts that hadn't changed). Confirmed working: title generated and passed validation; overview correctly withheld because the only concrete stat available came from a T6 (not proof-eligible) claim.
+- Wired GitHub parsing and generation into `app/main.py` (generation is additive — if it fails, the score/gap list still render, matching the plan's own fallback ordering). Removed `stub_github_claim` entirely; `app/stub_data.py` now only holds the benchmark re-export and the 5 still-placeholder dimension scores.
+- **Ran the actual Phase B checkpoint**: real CV + real GitHub (`torvalds`) + real Upwork paste, through the real browser, producing a real score, real gap list, and an attempted real title/overview. Title and overview were both withheld this run — expected, not a bug: `torvalds`'s profile is a pile of Linux kernel C repos, a poor match for an "AI engineering" title, so there was nothing both title-worthy and traceable to build from. Didn't spend another call chasing this since it's fully explainable from the design.
+
+**Why:**
+- Phase B's checkpoint (PROJECT_PLAN.md Section 5) is specifically "CV + GitHub in -> score, gap list, and a rewritten title out" — GitHub pull and generation were both required to actually hit it, not just polish.
+- GitHub needing zero Gemini calls is a nice structural fact worth remembering: it's the cheapest source to test freely without touching the new rate-limit discipline at all.
+
+**Next steps:**
+- Phase B's checkpoint is met. Remaining Phase B/C items: real persistent storage (currently everything is in-memory per-request, no database), the real 30-profile benchmark (still needs the user), and the four dimensions without a formula (positioning, portfolio_quality, completeness, conversion — pricing_strategy formula also still pending).
+- Should re-run the full browser test with a profile that's actually a good fit for the niche (an AI/ML-flavored GitHub account, not `torvalds`) to see a real, non-withheld title/overview — reasonable next real-call spend.
+- Not yet committed/pushed to GitHub — do that next.
+
+---
+
 ## 2026-09-01 — Provisional benchmark unblocks Phase A; GitHub backup set up; Gemini retry logic added
 
 **What changed:**
