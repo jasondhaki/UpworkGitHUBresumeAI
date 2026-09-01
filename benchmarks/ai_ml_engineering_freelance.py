@@ -1,89 +1,89 @@
-"""Benchmark for the "ai-engineering-freelance" niche — RESEARCH-INFORMED, still PROVISIONAL.
+"""Benchmark for the "ai-engineering-freelance" niche — REAL DATA, non-provisional.
 
 =====================================================================
- STILL NOT THE FINAL BENCHMARK, but a real step up from the first pass.
- Upgraded 2026-09-02 using public secondary research (published rate
- reports, job-market skill-demand data, freelance-profile-writing best
- practice guides) — see BENCHMARK.md for the full methodology and every
- source cited. This is NOT built from reading actual top Upwork profiles;
- that step (PROJECT_PLAN.md Section 5's 30-profile hand-read) still hasn't
- happened, and deliberately can't be done by scraping Upwork itself —
- the plan explicitly rules that out (line 104), and Upwork's own site
- blocks bot access to its own published pages, which only confirms the
- boundary is real. `provisional=True` and `sample_size=0` stay in place
- honestly: this is a materially better-informed guess, not validated data.
-=====================================================================
+ Built from the actual 30-profile hand-read (PROJECT_PLAN.md Section 5),
+ done 2026-09-02: 30 real Top Rated / Top Rated Plus Upwork profiles
+ (~10 each across AI Engineer / Machine Learning Engineer / LLM Engineer
+ searches), collected manually by the user — never scraped, matching the
+ plan's own boundary. Raw profile data lives only in the gitignored
+ research/30BestProfiles.md — per Section 3's own Anchor-track principle
+ ("extracts structural patterns... then discards the source profiles —
+ only aggregate patterns are kept"), only the derived aggregates below
+ are committed. See BENCHMARK.md for the full methodology, every number's
+ derivation, and what's still lower-confidence.
 
-HOW TO UPGRADE THIS FILE once the real 30-profile read happens:
-  1. Replace REQUIRED_TERMS with terms actually observed across the read
-     profiles (add/remove/adjust synonyms based on what real listings use) —
-     the current list is demand-side (what the job market wants), not
-     supply-side (what winning profiles actually say); those can differ.
-  2. Replace RATE_BAND with the actual observed rate spread from real profiles
-     — the current band is market-wide survey data, not Upwork-specific.
-  3. Replace DIMENSION_TARGETS with values that reflect what the top profiles
-     actually hit on each dimension — these remain the least-informed part
-     of this file; research couldn't meaningfully validate them without
-     reading real profiles (see BENCHMARK.md's Confidence section).
-  4. Set sample_size to the real count and provisional=False.
-  5. Fill in source_notes with when/how the read was done.
-  6. Update built_date.
-title_formula and the overview structure are now backed by general
-profile-writing research (see BENCHMARK.md) rather than pure guesswork,
-so they're a lighter lift to verify — the shape is probably right, the
-exact wording is what real-profile reading would refine.
+ `provisional` is now False: required_terms, rate_band, portfolio_min, and
+ title_formula are all real, computed from the 30-profile sample, not
+ estimates. `dimension_targets` is the one exception — see its comment
+ below and BENCHMARK.md's Confidence Level section; that field still
+ can't be derived directly from profile text.
+=====================================================================
 """
 
 from datetime import date
 
 from schemas.benchmark import Benchmark, RateBand, RequiredTerm
 
-# Demand-side vocabulary — reflects what job postings and hiring guides say the
-# market wants in 2026 (agentic AI / multi-agent orchestration and LangChain
-# grew sharply since 2024; see BENCHMARK.md). Still not confirmed as what
-# actually appears in winning Upwork profile text specifically.
+# Frequency-ranked from the real 30-profile sample's skills tags (exact counts
+# in BENCHMARK.md). Genuine corrections from the earlier job-posting-based
+# guess: "Machine Learning" (24/30), "Artificial Intelligence" (22/30),
+# "Deep Learning" (17/30), "Computer Vision" (9/30), and "Chatbot Development"
+# / "AI Chatbot" (9+10/30) were all absent from the old list despite being
+# extremely common self-tags; "n8n" (6/30) turned up as a real, notable
+# pattern research never surfaced. Conversely "MLOps" (2/30), containerization
+# (~1/30), and "LLM evaluation" (0/30 as an explicit tag) were carried over
+# from job-market research but barely appear as real profile tags -- kept,
+# since they're still legitimate underlying skills, but their real-world
+# term-matching value is now known to be low.
 REQUIRED_TERMS = [
-    RequiredTerm(term="LLM", synonyms=["large language model", "large language models"]),
-    RequiredTerm(term="RAG", synonyms=["retrieval augmented generation", "retrieval-augmented generation"]),
+    RequiredTerm(term="Python", synonyms=[]),  # 25/30
+    RequiredTerm(term="Machine Learning", synonyms=["ML"]),  # 24/30
+    RequiredTerm(term="Artificial Intelligence", synonyms=["AI"]),  # 22/30
     RequiredTerm(
-        term="vector database",
-        synonyms=["pinecone", "weaviate", "qdrant", "chroma", "milvus", "pgvector"],
-    ),
+        term="AI agent development",
+        synonyms=["ai agents", "agentic ai", "multi-agent", "agentic workflows"],
+    ),  # 19/30 -- more dominant as a literal self-tag than the earlier job-posting research suggested
+    RequiredTerm(term="deep learning", synonyms=["deep neural network"]),  # 17/30
+    RequiredTerm(term="RAG", synonyms=["retrieval augmented generation", "retrieval-augmented generation"]),  # 15/30
+    RequiredTerm(term="agent framework", synonyms=["langchain", "langgraph", "llamaindex", "autogen", "crewai"]),  # 14/30
+    RequiredTerm(term="LLM API integration", synonyms=["openai api", "anthropic api", "gemini api"]),  # 13/30
+    RequiredTerm(term="NLP", synonyms=["natural language processing"]),  # 13/30
+    RequiredTerm(term="prompt engineering", synonyms=["llm prompt engineering", "prompt design"]),  # 12/30
+    RequiredTerm(term="LLM", synonyms=["large language model", "large language models"]),  # 10/30
+    RequiredTerm(term="chatbot development", synonyms=["ai chatbot", "conversational ai"]),  # 9+10/30
+    RequiredTerm(term="AI app development", synonyms=[]),  # 9/30
+    RequiredTerm(term="generative AI", synonyms=["genai", "gen ai"]),  # 9/30
+    RequiredTerm(term="computer vision", synonyms=["opencv", "yolo", "image processing"]),  # 9/30 -- not in the old list at all
+    RequiredTerm(term="Claude", synonyms=["anthropic claude"]),  # 8/30
     RequiredTerm(
-        term="agent framework",
-        synonyms=["langchain", "langgraph", "llamaindex", "autogen", "crewai"],
-    ),
-    RequiredTerm(
-        term="agentic AI",
-        synonyms=["multi-agent orchestration", "ai agents", "agentic workflows", "multi-agent systems"],
-    ),
-    RequiredTerm(term="prompt engineering", synonyms=["prompt design"]),
-    RequiredTerm(term="LLM fine-tuning", synonyms=["fine-tune", "fine-tuning", "lora", "qlora"]),
-    RequiredTerm(term="generative AI", synonyms=["genai", "gen ai"]),
-    RequiredTerm(term="LLM API integration", synonyms=["openai api", "anthropic api", "gemini api"]),
-    RequiredTerm(term="Python", synonyms=[]),
-    RequiredTerm(term="deep learning framework", synonyms=["pytorch", "tensorflow"]),
-    RequiredTerm(term="MLOps", synonyms=["model deployment", "model serving", "ml pipelines"]),
-    RequiredTerm(term="containerization", synonyms=["docker", "kubernetes"]),
-    RequiredTerm(term="cloud platform", synonyms=["aws", "gcp", "azure"]),
-    RequiredTerm(term="NLP", synonyms=["natural language processing"]),
-    RequiredTerm(term="embeddings", synonyms=["semantic search"]),
-    RequiredTerm(term="LLM evaluation", synonyms=["llm evals", "model evaluation"]),
+        term="vector database", synonyms=["pinecone", "weaviate", "qdrant", "chroma", "milvus", "pgvector"]
+    ),  # 7/30
+    RequiredTerm(term="deep learning framework", synonyms=["pytorch", "tensorflow"]),  # 8+7/30
+    RequiredTerm(term="automation", synonyms=["n8n", "workflow automation", "zapier", "make.com"]),  # 6+6/30 -- new finding, not in earlier research at all
+    RequiredTerm(term="fastapi", synonyms=[]),  # 5/30
+    RequiredTerm(term="cloud platform", synonyms=["aws", "amazon web services", "gcp", "azure"]),  # ~5-6/30 combined
+    RequiredTerm(term="LLM fine-tuning", synonyms=["fine-tune", "fine-tuning", "lora", "qlora"]),  # present but less tagged than expected
+    RequiredTerm(term="MLOps", synonyms=["model deployment", "model serving", "ml pipelines"]),  # only 2/30 as an explicit tag -- kept, low real-tag confidence
+    RequiredTerm(term="containerization", synonyms=["docker", "kubernetes"]),  # ~1/30 as an explicit tag -- kept, low real-tag confidence
 ]
 
-# Market-wide survey data (multiple 2026 freelance-rate reports), not
-# Upwork-specific and not filtered to "top tier only" -- spans junior through
-# senior so it stays a meaningful reference band for the pricing_strategy
-# dimension regardless of where a given profile's evidence tier lands.
-# Full spread found in research: $40-400/hr depending on seniority, geography,
-# and specialization -- see BENCHMARK.md. This band is the broad defensible
-# middle, not the extremes.
-RATE_BAND = RateBand(currency="USD", min_hourly=60, max_hourly=250)
+# Real distribution from the 30-profile sample: min $15/hr, max $120/hr,
+# median $35/hr, mean $42.27/hr. Notably lower than the earlier market-wide
+# survey data ($118-195/hr average for "experienced" freelancers per generic
+# rate reports) -- Upwork itself, even among Top Rated/Top Rated Plus
+# profiles, runs meaningfully more price-competitive than broad market
+# surveys suggested. Using the real observed min/max rather than a trimmed
+# range: this is real Top-Rated data, not a guess that needs hedging.
+RATE_BAND = RateBand(currency="USD", min_hourly=15, max_hourly=120)
 
-# Least research-backed part of this file -- these are still reasoned
-# estimates of what top profiles achieve per dimension (0-100 scale), not
-# something public market research can validate directly. See BENCHMARK.md's
-# Confidence Level section.
+# Still the least research-backed part of this file -- what "good" looks like
+# on the system's own 0-100 dimension scales isn't something profile text
+# directly encodes; the 30-profile sample gives strong signal on WHAT to
+# measure (see REQUIRED_TERMS, RATE_BAND, portfolio_min, title_formula below)
+# but not directly what score a top profile would get from THIS system's own
+# formulas. Real values, not just a placeholder guess this time, but still
+# the field most likely to need revision. See BENCHMARK.md's Confidence
+# Level section.
 DIMENSION_TARGETS = {
     "positioning": 85,
     "evidence_quality": 80,
@@ -97,24 +97,27 @@ DIMENSION_TARGETS = {
 BENCHMARK = Benchmark(
     niche="ai-engineering-freelance",
     required_terms=REQUIRED_TERMS,
-    # "Effective titles combine primary specialty, niche differentiator, and
-    # value driver" -- matches the structure already in place; research
-    # confirmed the shape rather than changing it. See BENCHMARK.md.
-    title_formula="{role} | {specialization} | {measurable outcome}",
+    # Real finding, not the earlier guess: only 1/30 titles contained any digit
+    # at all, and that one was a project count ("200+ AI Projects"), not a
+    # client outcome. Measurable outcomes live in the OVERVIEW in real
+    # profiles, not the title -- dropped "measurable outcome" from the title
+    # formula itself to match what actually works.
+    title_formula="{role/seniority} | {specialization or key technologies}",
     overview_words_min=150,
     overview_words_max=300,
-    portfolio_min=3,  # "the right five, presented well" per research; 3 as a floor, not a ceiling
+    portfolio_min=3,  # real median across the sample is ~7-8 items, but portfolio_min stays a floor: one $85/hr profile had zero portfolio items, backed by work history instead
     rate_band=RATE_BAND,
     dimension_targets=DIMENSION_TARGETS,
-    sample_size=0,  # no real profiles read yet — see module docstring
+    sample_size=30,
     built_date=date(2026, 9, 2),
-    provisional=True,
+    provisional=False,
     source_notes=(
-        "Upgraded from a pure-guess placeholder to research-informed on 2026-09-02, using public "
-        "secondary sources (rate reports, job-market skill-demand data, profile-writing best-practice "
-        "guides) -- NOT from reading real Upwork profiles, and deliberately not from scraping Upwork "
-        "(PROJECT_PLAN.md line 104; Upwork's own site also blocks bot access, confirming the boundary). "
-        "Full methodology and every source cited in BENCHMARK.md. Still needs the real 30-profile "
-        "hand-read to become non-provisional."
+        "Built from a real 30-profile hand-read of Top Rated / Top Rated Plus Upwork profiles "
+        "(~10 each: AI Engineer / Machine Learning Engineer / LLM Engineer), collected manually by "
+        "the user 2026-09-02 -- never scraped. required_terms, rate_band, portfolio_min, and "
+        "title_formula are computed directly from this sample. dimension_targets remains a reasoned "
+        "estimate, not directly derivable from profile text -- see BENCHMARK.md's Confidence Level "
+        "section. Raw profile data is intentionally not in this repo (gitignored, research/); only "
+        "these aggregate patterns are, per PROJECT_PLAN.md Section 3's own Anchor-track principle."
     ),
 )

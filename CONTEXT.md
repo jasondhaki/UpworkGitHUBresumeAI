@@ -12,6 +12,26 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — The real 30-profile benchmark read happened; benchmark is no longer provisional
+
+**What changed:**
+- User manually collected real data on 30 currently-active Top Rated / Top Rated Plus Upwork profiles (~10 each: AI Engineer / Machine Learning Engineer / LLM Engineer), dropped in as `30BestProfiles.txt` at the project root. This is the actual Phase A/C task ("read 30 top profiles in the niche, pull out patterns by hand") that's been an open item since the very start of the build.
+- **Protected the raw data before touching it**: added `30BestProfiles.txt`, `research/`, and a converted `.md` copy to `.gitignore` in a standalone commit before reading or processing anything, same pattern as `RESUME.pdf`. This data identifies real third-party individuals (names, rates, work history) — treated it with the same care, and applied the plan's own explicit design principle for exactly this situation (Section 3, Anchor track: "extracts structural patterns... then discards the source profiles — only aggregate patterns are kept"). Converted the raw txt into a cleaner `research/30BestProfiles.md`, kept local-only.
+- Computed real numbers from the data (script-verified, not eyeballed): rate distribution (min $15/hr, max $120/hr, median $35/hr, mean $42/hr across all 30), portfolio-item distribution (median ~7.5, range 0-69), and exact skill-tag frequency counts (156 unique tags tallied).
+- **Rewrote `benchmarks/ai_ml_engineering_freelance.py` with real, non-provisional data**: `provisional` flipped to `False`, `sample_size` to `30`. `required_terms` corrected significantly — added several very-common real tags the earlier job-posting-based research had missed entirely (Machine Learning 24/30, Artificial Intelligence 22/30, Deep Learning 17/30, Computer Vision 9/30, Chatbot Development 9-10/30, and a genuinely new finding: automation tooling like n8n at 6/30, absent from any earlier research pass) and downgraded confidence on terms the research had overweighted (MLOps only 2/30 as an explicit tag, containerization ~1/30, LLM evaluation 0/30). `rate_band` replaced with the real $15-120 range. `title_formula` changed from including "{measurable outcome}" to dropping it — verified only 1/30 real titles contained any digit at all, and even that was a project count, not a client outcome; real profiles put measurable results in the overview, not the title.
+- Rewrote `BENCHMARK.md` around the real findings, most notably: **real Upwork rates run substantially lower than the general market-rate-survey data the earlier version relied on** ($35/hr median vs. the earlier $118-195/hr "average experienced freelancer" figure) — flagged prominently since it's the kind of finding that changes what "a defensible rate" actually means for this product. Also documented real, concrete stylistic patterns (named "Client Success Stories" proof sections, emoji-bullet formatting, self-stated credibility markers inside overview prose) that generic profile-writing research never surfaced. Dimension targets remain the one field still flagged low-confidence — profile text genuinely can't answer what score this system's own formulas would assign, that needs a different exercise (running the product against real profiles, not reading them).
+- Verified the updated benchmark loads correctly and scores sensibly with zero Gemini calls (direct load check + re-running the GitHub ingestion path, which imports the real benchmark).
+
+**Why:**
+- Doing the real word-count/frequency tallies with a script rather than eyeballing 30 long tag lists by hand was worth the two minutes — caught the exact numbers precisely (e.g., confirming "only 1/30 titles contains a digit" by grep rather than impression, which mattered enough to change `title_formula`).
+- The rate-band finding specifically deserves to be surfaced prominently, not buried — it's the single most boss-relevant insight in this whole benchmark-building effort, and easy to miss if the doc just quietly updates a number without calling out that it contradicts the earlier, differently-sourced figure.
+
+**Next steps:**
+- The PENDING line (rate-limit-blocked items: live dimension verification, CV stress-testing, the real-resume test) is unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Real resume dropped in for testing; confirmed rate limit is still hard-blocking
 
 **What changed:**
