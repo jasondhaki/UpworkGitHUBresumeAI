@@ -17,7 +17,7 @@ from datetime import date
 from schemas.claim import Claim, EvidenceTier, SourceSpan, SourceType
 
 from .file_router import TextBlock, extract_text_blocks
-from app.llm.gemini_client import generate_json
+from app.llm.client import generate_json
 
 CLAIM_EXTRACTION_SCHEMA = {
     "type": "object",
@@ -38,13 +38,16 @@ CLAIM_EXTRACTION_SCHEMA = {
 }
 
 EXTRACTION_PROMPT_TEMPLATE = """You are extracting evidence claims from a freelancer's CV for a \
-skills-verification system. Below are numbered text blocks extracted from the document.
+skills-verification system. There are {num_blocks} numbered text blocks below, extracted from the \
+document, indexed 0 to {max_index}.
 
-For each block that describes a concrete skill, project, certification, or piece of work \
-experience, return one claim referencing its block_index and a list of short skill_id strings \
-(lowercase, underscore-separated, e.g. "vector_databases", "llm_fine_tuning") it supports. \
-Skip blocks that are just section headers (e.g. "Skills:", "Experience:") or contain no evidence \
-of a skill. A block can support more than one skill_id.
+You MUST evaluate every single block from 0 to {max_index} independently and include one claim \
+object in the "claims" array for EVERY block that describes a concrete skill, project, \
+certification, or piece of work experience -- a list of short skill_id strings (lowercase, \
+underscore-separated, e.g. "vector_databases", "llm_fine_tuning") it supports. Do not stop after \
+the first match -- continue checking all remaining blocks. Skip only blocks that are just section \
+headers (e.g. "Skills:", "Experience:") or contain no evidence of a skill. A block can support more \
+than one skill_id.
 
 {numbered_blocks}
 """
@@ -80,7 +83,7 @@ def parse_cv_to_claims(pdf_path: str, freelancer_id: str) -> list[Claim]:
         return []
 
     numbered = "\n".join(f"[{b.index}] {b.text}" for b in blocks)
-    prompt = EXTRACTION_PROMPT_TEMPLATE.format(numbered_blocks=numbered)
+    prompt = EXTRACTION_PROMPT_TEMPLATE.format(numbered_blocks=numbered, num_blocks=len(blocks), max_index=len(blocks) - 1)
     result = generate_json(prompt, CLAIM_EXTRACTION_SCHEMA)
 
     claims: list[Claim] = []

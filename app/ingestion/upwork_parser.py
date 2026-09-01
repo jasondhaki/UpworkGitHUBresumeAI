@@ -20,7 +20,7 @@ from datetime import date
 from schemas.claim import Claim, EvidenceTier, SourceSpan, SourceType
 
 from .text_segmentation import segment_paragraphs
-from app.llm.gemini_client import generate_json
+from app.llm.client import generate_json
 
 CLAIM_EXTRACTION_SCHEMA = {
     "type": "object",
@@ -41,14 +41,16 @@ CLAIM_EXTRACTION_SCHEMA = {
 }
 
 EXTRACTION_PROMPT_TEMPLATE = """You are extracting evidence claims from a freelancer's pasted \
-Upwork profile text for a skills-verification system. Below are numbered paragraph blocks from \
-the profile.
+Upwork profile text for a skills-verification system. There are {num_blocks} numbered paragraph \
+blocks below, indexed 0 to {max_index}.
 
-For each block that describes a concrete skill, project, client outcome, or piece of work \
-experience, return one claim referencing its block_index and a list of short skill_id strings \
-(lowercase, underscore-separated, e.g. "workflow_automation", "api_integration") it supports. \
-Skip blocks that are pure rate/logistics statements with no skill content (e.g. a standalone \
-"I charge $X/hour" line with nothing else in the block).
+You MUST evaluate every single block from 0 to {max_index} independently and include one claim \
+object in the "claims" array for EVERY block that describes a concrete skill, project, client \
+outcome, or piece of work experience -- a list of short skill_id strings (lowercase, \
+underscore-separated, e.g. "workflow_automation", "api_integration") it supports. Do not stop \
+after the first match -- continue checking all remaining blocks. Skip only blocks that are pure \
+rate/logistics statements with no skill content (e.g. a standalone "I charge $X/hour" line with \
+nothing else in the block).
 
 {numbered_blocks}
 """
@@ -74,7 +76,7 @@ def parse_upwork_text_to_claims(upwork_text: str, freelancer_id: str) -> list[Cl
         return []
 
     numbered = "\n".join(f"[{b.index}] {b.text}" for b in blocks)
-    prompt = EXTRACTION_PROMPT_TEMPLATE.format(numbered_blocks=numbered)
+    prompt = EXTRACTION_PROMPT_TEMPLATE.format(numbered_blocks=numbered, num_blocks=len(blocks), max_index=len(blocks) - 1)
     result = generate_json(prompt, CLAIM_EXTRACTION_SCHEMA)
 
     claims: list[Claim] = []

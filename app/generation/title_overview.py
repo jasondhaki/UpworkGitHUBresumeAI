@@ -22,7 +22,7 @@ import re
 from schemas.claim import Claim, EvidenceTier
 from schemas.result import GeneratedContent, GeneratedField, SourceSpanRef
 
-from app.llm.gemini_client import generate_json
+from app.llm.client import generate_json
 
 PROOF_ELIGIBLE_TIERS = {EvidenceTier.T1, EvidenceTier.T2, EvidenceTier.T3, EvidenceTier.T4}
 

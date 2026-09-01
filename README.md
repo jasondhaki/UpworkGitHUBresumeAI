@@ -26,6 +26,17 @@ GEMINI_API_KEY="your-key-here"
 
 Optionally, a `GITHUB_TOKEN` in the same file raises GitHub API rate limits from 60/hour to 5000/hour (unauthenticated works fine for occasional use).
 
+### Running extraction against a local model instead of Gemini
+
+Gemini's free tier rate-limits hard under iterative testing (see `CLAUDE.md`). For local demo/dev sessions where you'd rather not fight that, set:
+
+```
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=llama3.2:3b   # optional, this is the default
+```
+
+in `.env` and have [Ollama](https://ollama.com) running locally (`ollama pull llama3.2:3b` once, then `ollama serve` or just let the desktop app run). `app/llm/client.py` picks the backend by this env var — `app/llm/gemini_client.py` and `app/llm/ollama_client.py` both implement the same `generate_json(prompt, response_schema)` contract, so nothing else in the ingestion/generation code needs to know which one is active. No GPU is required, but expect slower per-call latency than Gemini on CPU-only hardware — remove the env var (or set it to `gemini`) to switch back.
+
 ## Running it
 
 ```bash
