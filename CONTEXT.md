@@ -8,7 +8,23 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 - Update this at the end of every session (see `CLAUDE.md` — it's a standing instruction now, not something to remember manually).
 - Revisit it at the start of any session, even a small one, before making changes.
 
-**PENDING (as of 2026-09-02):** verify all seven scoring dimensions live end-to-end (CV + Upwork + generation together) and stress-test the CV parser against a few more differently-structured CVs — both blocked on Gemini's free-tier rate limit (hit a real 429 today from cumulative testing volume). Not a known bug, just needs quota to reset. Check the live limit at https://aistudio.google.com/rate-limit rather than guessing timing. First thing to do in the next session that touches this project. See the top log entry below for full detail.
+**PENDING (as of 2026-09-02):** verify all seven scoring dimensions live end-to-end (CV + Upwork + generation together), stress-test the CV parser against a few more differently-structured CVs, and **run the user's real resume (`RESUME.pdf`, gitignored, lives in the project root locally — not in git) through the full pipeline** — all three blocked on the same Gemini free-tier rate limit. Re-checked directly with a minimal API call (not just via the app) at the end of the day and confirmed it's still a hard 429, not a transient 503 — quota genuinely hasn't reset yet. Check the live limit at https://aistudio.google.com/rate-limit rather than guessing timing. First thing to do in the next session that touches this project. See the top log entry below for full detail.
+
+---
+
+## 2026-09-02 — Real resume dropped in for testing; confirmed rate limit is still hard-blocking
+
+**What changed:**
+- User dropped their actual resume in as `RESUME.pdf` at the project root, explicitly to be used as a real test CV — and explicitly said not to let it reach GitHub. Added `RESUME.pdf` (and a `*.resume.pdf` pattern for any future variant) to `.gitignore` **before** touching anything else, committed that alone first, then proceeded. This is the first real person's resume this build has ever touched, not a synthetic fixture.
+- Attempted the real end-to-end test via the actual live app (not a bypass script). Failed the same way as earlier today: Gemini extraction failed after retrying. Checked directly with a minimal, isolated API call (bypassing the CV/Docling overhead entirely) to confirm exactly what's happening rather than guess — confirmed it's still a genuine 429 (quota), not a transient 503 (overload). Same root cause as the earlier-flagged PENDING item, not a new problem.
+- No resume content was extracted or stored anywhere — the failure happened before any real data left the request. Test artifacts (a one-off script and its output) were kept entirely in the OS temp/scratchpad directory, never in the repo, specifically because this test's output would contain real personal data.
+
+**Why:**
+- Verifying the actual error type (429 vs 503) via a minimal isolated call, rather than assuming from the same generic error message, is worth doing every time this comes up — they mean different things (quota exhaustion vs. transient overload) and only one of them is worth retrying.
+
+**Next steps:**
+- All three items in the PENDING line now share one root cause. Nothing further to do here until Gemini's quota resets — see the PENDING line for what to pick up first.
+- Committed and pushed.
 
 ---
 
