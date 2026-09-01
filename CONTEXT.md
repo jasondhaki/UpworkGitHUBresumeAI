@@ -8,6 +8,8 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 - Update this at the end of every session (see `CLAUDE.md` — it's a standing instruction now, not something to remember manually).
 - Revisit it at the start of any session, even a small one, before making changes.
 
+**PENDING (as of 2026-09-02):** verify all seven scoring dimensions live end-to-end (CV + Upwork + generation together) and stress-test the CV parser against a few more differently-structured CVs — both blocked on Gemini's free-tier rate limit (hit a real 429 today from cumulative testing volume). Not a known bug, just needs quota to reset. Check the live limit at https://aistudio.google.com/rate-limit rather than guessing timing. First thing to do in the next session that touches this project. See the top log entry below for full detail.
+
 ---
 
 ## 2026-09-02 — All seven scoring dimensions now real; hit the actual Gemini rate limit doing it

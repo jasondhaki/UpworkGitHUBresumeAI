@@ -4,7 +4,7 @@ Solo demo project: AI5K Profile Intelligence System. Free-tier-only stack (no pr
 
 ## Session context log — read this first, update it last
 
-- **At the start of a session**, read `CONTEXT.md` (top entry = most recent) before making changes. It has the current state and the reasoning behind recent decisions — don't re-derive or re-litigate what's already settled there.
+- **At the start of a session**, read `CONTEXT.md` (top entry = most recent) before making changes. It has the current state and the reasoning behind recent decisions — don't re-derive or re-litigate what's already settled there. **Check for a `PENDING` line right below the "How this file works" header** — if one exists, that's unfinished work from a prior session (usually something blocked on an external condition like a rate limit) that should be picked up now if the blocker has cleared, without waiting to be asked. Clear the line once it's resolved.
 - **At the end of a session that made real changes** (files edited, decisions made, findings discovered — not just Q&A), add a new entry at the top of `CONTEXT.md` with:
   - **What changed** — concrete: files touched, decisions made, findings discovered
   - **Why** — the reasoning, especially anything non-obvious or that reversed an earlier assumption
