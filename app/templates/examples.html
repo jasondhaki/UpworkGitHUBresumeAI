@@ -26,10 +26,6 @@
     <p>Ten archetype profiles across the three categories the <strong>{{ benchmark.niche.replace('-', ' ') }}</strong> benchmark was built from, spanning the real variety in the data — agentic/automation, computer vision, MLOps, research, and product-focused profiles. No individual profile is quoted or reproduced.</p>
   </section>
 
-  <div class="synthetic-banner fade-in fade-in-1">
-    <strong>These are synthetic.</strong> Not real Upwork listings, not anonymized excerpts of anyone's real profile — invented example text that follows the real patterns from the 30-profile benchmark read. Skills and rates are drawn from real data; every word of title and overview copy below was written for this page, not lifted or paraphrased from any individual — see the "why not real excerpts" note at the bottom for the reasoning. <a href="/benchmark">The benchmark page</a> has the real underlying numbers.
-  </div>
-
   {% set ai_engineer = [
     {
       "tag": "Agentic AI / RAG", "src": "src-github",
@@ -109,7 +105,7 @@
     },
   ] %}
 
-  <div class="section sec-generated fade-in fade-in-2">
+  <div class="section sec-generated fade-in fade-in-1">
     <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5V15.5M6 15.5c0-3 2-4 6-4h4"/></svg>AI Engineer archetypes</h2>
     <p class="section-caption">4 patterns spanning what real "AI Engineer" search results actually look like.</p>
     {% for a in ai_engineer %}{{ archetype_card(a) }}{% endfor %}
@@ -125,12 +121,5 @@
     <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1-4L16 5l3 3-11 11-4 1z"/><path d="M14 7l3 3"/></svg>LLM Engineer archetypes</h2>
     <p class="section-caption">3 patterns — fine-tuning, research, and product-building profiles.</p>
     {% for a in llm_engineer %}{{ archetype_card(a) }}{% endfor %}
-  </div>
-
-  <div class="section fade-in fade-in-2">
-    <h2>Why not real excerpts?</h2>
-    <p class="section-caption" style="max-width: 62ch;">
-      Removing a name doesn't fully solve two separate problems: distinctive details (a specific dollar figure, a named client, a portfolio project title) can still make someone identifiable even without their name attached, and the overview text is each person's own original writing — copyright doesn't require a name to apply, so stripping one doesn't create permission to republish it elsewhere. Both are true independent of Upwork's own terms restricting reuse of profile content off-platform. The archetypes above get you the same lesson (what actually wins in this niche) from the real aggregate patterns, without that exposure.
-    </p>
   </div>
 {% endblock %}

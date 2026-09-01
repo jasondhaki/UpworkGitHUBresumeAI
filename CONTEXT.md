@@ -32,6 +32,21 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Trimmed the /examples disclosure blocks per request, kept minimal honest disclosure
+
+**What changed:**
+- User asked to remove the "these are synthetic" banner and the "Why not real excerpts?" section from `/examples` — a content-density request, not a request to hide the synthetic nature. Removed both plus the now-unused `.synthetic-banner` CSS.
+- Checked before removing everything: the hero paragraph already states "No individual profile is quoted or reproduced," and each card sits under a section literally titled "[X] archetypes." That minimal disclosure survives the removal, so the page doesn't end up silently presenting invented profiles as real — removing the two heavier explanatory blocks doesn't mean removing all signal.
+
+**Why:**
+- Worth being deliberate here rather than reflexively complying with "remove X" as "remove all trace of X's purpose" — the specific request was about visual weight/redundancy, and honoring it didn't require dropping the one-line disclosure that keeps the page honest.
+
+**Next steps:**
+- PENDING line unchanged.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — User pushed back on the anonymization call; held the line with specific reasoning, expanded the safe version instead
 
 **What changed:**

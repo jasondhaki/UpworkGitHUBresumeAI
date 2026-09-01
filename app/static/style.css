@@ -509,18 +509,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 
 /* ---------- examples page (synthetic archetypes) ---------- */
 
-.synthetic-banner {
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--src-github);
-  background: var(--src-github-wash);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  font-size: 13.5px;
-  color: var(--text-soft);
-  margin: 24px 0 8px;
-}
-.synthetic-banner strong { color: var(--src-github); }
-
 .archetype-card { padding: 26px 28px; margin-bottom: 22px; }
 .archetype-card:last-child { margin-bottom: 0; }
 .archetype-tag {
