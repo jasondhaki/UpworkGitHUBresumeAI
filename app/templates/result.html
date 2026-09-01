@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Result — AI5K Profile Intelligence</title></head>
+<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
+  <p><a href="/">&larr; back</a></p>
+  <h1>Readiness: {{ result.readiness }} / 100{% if result.capped %} (capped — evidence is self-declared only){% endif %}</h1>
+
+  <h2>Dimensions</h2>
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width:100%">
+    <tr><th>Dimension</th><th>Current</th><th>Target</th><th>Weight</th></tr>
+    {% for name, d in result.dimensions.items() %}
+    <tr><td>{{ name }}</td><td>{{ "%.1f"|format(d.current) }}</td><td>{{ "%.1f"|format(d.target) }}</td><td>{{ d.weight }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Top gaps</h2>
+  {% if result.gaps %}
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width:100%">
+    <tr><th>Dimension</th><th>Current</th><th>Target</th><th>Gain</th><th>Effort (hrs)</th><th>Priority</th></tr>
+    {% for g in result.gaps %}
+    <tr><td>{{ g.dimension }}</td><td>{{ "%.1f"|format(g.current) }}</td><td>{{ "%.1f"|format(g.target) }}</td><td>{{ g.gain }}</td><td>{{ g.effort_hours }}</td><td>{{ g.priority }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No gaps to show (no input, or everything already at target).</p>
+  {% endif %}
+
+  <h2>Blocking items</h2>
+  {% if result.blocking %}
+  <ul>{% for b in result.blocking %}<li>{{ b.description }} — {{ b.reason }}</li>{% endfor %}</ul>
+  {% else %}
+  <p>None.</p>
+  {% endif %}
+
+  <h2>Claims used (CV + Upwork paste are real; GitHub is still a stub)</h2>
+  <ul>
+    {% for c in claims %}
+    <li><strong>{{ c.source_type.value }}</strong> [{{ c.tier.value }}, weight {{ c.weight }}]: {{ c.text }}</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

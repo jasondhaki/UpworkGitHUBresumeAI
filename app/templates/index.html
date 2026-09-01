@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>AI5K Profile Intelligence — Phase A skeleton</title></head>
+<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
+  <h1>AI5K Profile Intelligence</h1>
+  <p><em>Phase A skeleton — every claim below is stub data, not real ingestion yet.</em></p>
+  <form action="/analyze" method="post" enctype="multipart/form-data">
+    <p>
+      <label for="cv_file">CV (native PDF only — scans get rejected, not OCR'd)</label><br>
+      <input id="cv_file" name="cv_file" type="file" accept=".pdf">
+    </p>
+    <p>
+      <label for="github_username">GitHub username</label><br>
+      <input id="github_username" name="github_username" style="width:100%">
+    </p>
+    <p>
+      <label for="upwork_text">Upwork profile text (paste)</label><br>
+      <textarea id="upwork_text" name="upwork_text" rows="4" style="width:100%"></textarea>
+    </p>
+    <button type="submit">Analyze</button>
+  </form>
+</body>
+</html>
