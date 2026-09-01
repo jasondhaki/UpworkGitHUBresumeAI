@@ -8,7 +8,7 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 - Update this at the end of every session (see `CLAUDE.md` — it's a standing instruction now, not something to remember manually).
 - Revisit it at the start of any session, even a small one, before making changes.
 
-**PENDING (as of 2026-09-02):** stress-test the CV parser against a few more differently-structured CVs, and **run the user's real resume (`RESUME.pdf`, gitignored, lives in the project root locally — not in git) through the full pipeline** — both blocked on Gemini's free-tier rate limit, which is proving to be a very tight, intermittent allowance rather than a clean daily reset: one live call succeeded (GitHub ingestion + generation, all 7 scoring dimensions, confirmed working end-to-end for real — that item is DONE, off this list), then the very next attempt (the real resume) hit a hard 429 again seconds later. Don't assume "it worked once" means it's clear — verify each attempt independently. Check the live limit at https://aistudio.google.com/rate-limit if guessing timing isn't working. First thing to do in the next session that touches this project. See the top log entry below for full detail.
+**PENDING (as of 2026-09-02):** stress-test the CV parser against a few more differently-structured CVs, and **run the user's real resume (`RESUME.pdf`, gitignored, lives in the project root locally — not in git) through the full pipeline** — both blocked on Gemini's free-tier rate limit, which is proving to be a very tight, intermittent allowance rather than a clean daily reset: one live call succeeded (GitHub ingestion + generation, all 7 scoring dimensions, confirmed working end-to-end for real — that item is DONE, off this list), then the very next attempt (the real resume) hit a hard 429 again seconds later. Don't assume "it worked once" means it's clear — verify each attempt independently. Check the live limit at https://aistudio.google.com/rate-limit if guessing timing isn't working. First thing to do in the next session that touches this project. See the log below for full detail — note the UI has been redesigned twice since this item was written (dark/glow theme, then a `/benchmark` page added), so re-verify screenshots reflect the current look before assuming anything visual is stale.
 
 ---
 
@@ -28,6 +28,26 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 **Next steps:**
 - PENDING line unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
+## 2026-09-02 — Removed the fabricated hero cards; added a real /benchmark page
+
+**What changed:**
+- User pointed out the stacked score-card hero mockup was unnecessary — and on reflection it was also fabricated example data (fake 78/22/54 scores) sitting in the hero of a product whose entire premise is not showing unproven things. Removed it and the now-unused CSS/keyframe; the headline now flows straight into the source-explainer row.
+- Asked a clarifying question about "put the tier list on the sides" rather than guessing — turned out to just be a question about the tier count (confirmed: 8, fixed, not niche-specific), not a layout request. No change needed there.
+- That question led to a real gap: the user didn't know the difference between the 8 evidence tiers (universal, per-claim, how corroborated a piece of evidence is) and the benchmark (niche-specific, what "good" looks like, built from the 30-profile read) — explained the distinction, then the user asked to surface this on the site itself so users understand what they're being rated from.
+- **Built a new `/benchmark` page** rather than cramming this into the intake or results flow: verification badge (real data vs. provisional, pulling directly from `benchmark.provisional`/`sample_size`), the 7 dimension targets as bars, all 24 required skills as hoverable pills (title attribute shows synonyms), the real rate band, title formula / overview length / portfolio floor, and the full `source_notes` methodology text with a link out to `BENCHMARK.md` on GitHub for the complete writeup rather than duplicating it. Added to the header nav and linked from the intake page's tier-chain caption.
+- One design fix along the way: first pass rendered the long methodology paragraph in the same big serif "pull-quote" treatment used for the intake page's short governing-rule quote — reads fine for one punchy sentence, reads oddly for a full paragraph of explanatory prose. Gave it its own plainer card style instead.
+- Verified at desktop and mobile widths before calling it done.
+
+**Why:**
+- Asking instead of guessing on the "sides" comment was worth it — the literal request ("just confirming the count") was materially different from the most likely-sounding interpretation (a layout change), and building the wrong one would have wasted real effort.
+- A dedicated benchmark page fits this product's own transparency principle better than folding a methodology explainer into the results page — the results page is about *this* profile, the benchmark page is about the yardstick itself, and conflating them would have made both busier.
+
+**Next steps:**
+- PENDING line above updated with a note that it should be re-verified against the current (now twice-redesigned) UI, not assumed stale-but-otherwise-accurate.
 - Not yet committed/pushed — do that next.
 
 ---

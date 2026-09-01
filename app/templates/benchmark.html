@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Benchmark — AI5K{% endblock %}
+{% block content %}
+  <section class="hero left fade-in" style="padding-top: 40px;">
+    <p class="eyebrow">Methodology</p>
+    <h1>What you're rated against</h1>
+    <p>Every score on this site is measured against this benchmark for the <strong>{{ benchmark.niche.replace('-', ' ') }}</strong> niche — not an absolute scale. Here's exactly what that means, not just the number.</p>
+
+    {% if benchmark.provisional %}
+    <div class="verify-badge provisional" style="margin-top: 18px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+      Provisional — best-guess estimate, not yet from real profiles
+    </div>
+    {% else %}
+    <div class="verify-badge" style="margin-top: 18px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+      Verified — built from {{ benchmark.sample_size }} real profiles, not a guess
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="stat-row fade-in fade-in-1">
+    <div class="card dotted stat">
+      <div class="stat-value">{{ benchmark.sample_size }}</div>
+      <div class="stat-label">Real profiles read</div>
+    </div>
+    <div class="card dotted stat">
+      <div class="stat-value">{{ benchmark.required_terms|length }}</div>
+      <div class="stat-label">Required skills tracked</div>
+    </div>
+    <div class="card dotted stat">
+      <div class="stat-value">{{ benchmark.built_date }}</div>
+      <div class="stat-label">Last updated</div>
+    </div>
+  </div>
+
+  <div class="section sec-dims fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>Dimension targets</h2>
+    <p class="section-caption">What the top tier in this niche actually reaches on each dimension — not a perfect 100.</p>
+    {% for name, target in benchmark.dimension_targets.items() %}
+    <div class="dim-row" style="--dim-color: var(--dim-{{ name }})">
+      <div class="dim-name">{{ name.replace('_', ' ') }}</div>
+      <div class="dim-track"><div class="dim-fill" style="width: {{ target }}%"></div></div>
+      <div class="dim-value"><b>{{ "%.0f"|format(target) }}</b> / 100</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="section sec-gaps fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v6M12 17v6M4.2 4.2l4.2 4.2M15.5 15.5l4.2 4.2M1 12h6M17 12h6M4.2 19.8l4.2-4.2M15.5 8.5l4.2-4.2"/></svg>Required skills</h2>
+    <p class="section-caption">What actually shows up in winning profiles for this niche, ranked by real frequency in the sample. Hover a skill for its recognized aliases.</p>
+    <div class="skill-pills">
+      {% for rt in benchmark.required_terms %}
+      <span class="skill-pill"{% if rt.synonyms %} title="also matches: {{ rt.synonyms|join(', ') }}"{% endif %}>{{ rt.term }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="section sec-flags fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>Defensible rate band</h2>
+    <p class="section-caption">The real observed rate spread — not filtered to top performers only, so it stays meaningful regardless of your evidence tier.</p>
+    <div class="rate-bar-wrap">
+      <div class="rate-bar"><div class="rate-bar-fill"></div></div>
+      <div class="rate-labels"><b>${{ "%.0f"|format(benchmark.rate_band.min_hourly) }}/hr</b><span>{{ benchmark.rate_band.currency }}</span><b>${{ "%.0f"|format(benchmark.rate_band.max_hourly) }}/hr</b></div>
+    </div>
+  </div>
+
+  <div class="section sec-generated fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1-4L16 5l3 3-11 11-4 1z"/><path d="M14 7l3 3"/></svg>Profile structure</h2>
+    <p class="section-caption">The shape a rewritten title and overview follow for this niche.</p>
+    <div class="structure-grid">
+      <div class="card dotted structure-item">
+        <div class="k">Title formula</div>
+        <div class="v"><code>{{ benchmark.title_formula }}</code></div>
+      </div>
+      <div class="card dotted structure-item">
+        <div class="k">Overview length</div>
+        <div class="v">{{ benchmark.overview_words_min }}&ndash;{{ benchmark.overview_words_max }} words</div>
+      </div>
+      <div class="card dotted structure-item">
+        <div class="k">Portfolio floor</div>
+        <div class="v">{{ benchmark.portfolio_min }} items minimum — a floor, not a target</div>
+      </div>
+      <div class="card dotted structure-item">
+        <div class="k">Niche</div>
+        <div class="v">{{ benchmark.niche }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section sec-ledger fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Full methodology</h2>
+    <div class="card dotted methodology-note">
+      <p style="margin: 0 0 14px;">{{ benchmark.source_notes }}</p>
+      <a href="https://github.com/jasondhaki/UpworkGitHUBresumeAI/blob/main/BENCHMARK.md">Read the full writeup, sources, and confidence levels on GitHub &rarr;</a>
+    </div>
+  </div>
+{% endblock %}
