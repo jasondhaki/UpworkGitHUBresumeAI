@@ -43,6 +43,15 @@
     <p class="tier-chain-caption"><b>T1</b> client-verified, strongest &mdash; <b>T8</b> self-declared, weakest. Hover a tier for what it means. <a href="/benchmark">See the full benchmark &rarr;</a></p>
   </div>
 
+  {% if static_mode %}
+  <div class="card fade-in fade-in-3" style="margin-top: 48px;">
+    <p class="eyebrow">Static preview</p>
+    <p style="margin: 8px 0 18px;">This is a static preview with no live backend — GitHub Pages can't run the Gemini extraction or scoring engine behind this form. Clone the repo and run it locally to submit a real case.</p>
+    <div class="form-footer">
+      <a class="btn" href="https://github.com/jasondhaki/UpworkGitHUBresumeAI">View the code &rarr;</a>
+    </div>
+  </div>
+  {% else %}
   <form class="card fade-in fade-in-3" action="/analyze" method="post" enctype="multipart/form-data" style="margin-top: 48px;">
     <div class="field">
       <label for="cv_file">CV</label>
@@ -68,6 +77,7 @@
       <button class="btn" type="submit">Analyze &rarr;</button>
     </div>
   </form>
+  {% endif %}
 
   <div class="pull-quote">
     <p class="eyebrow">The rule everything else follows</p>
@@ -76,7 +86,7 @@
   </div>
 
   <div class="cta-row">
-    <a href="/" class="card dotted cta-card">
+    <a href="{{ base_path }}/" class="card dotted cta-card">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
       <div class="cta-title">Open a case</div>
       <p>Start a new reading right here.</p>

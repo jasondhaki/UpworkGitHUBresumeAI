@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}AI5K Profile Intelligence{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="{{ base_path }}/static/style.css">
 </head>
 <body>
   <header class="site-header">
     <div class="site-header-inner">
-      <a href="/" class="wordmark">AI5K<small>Profile Intelligence</small></a>
+      <a href="{{ base_path }}/" class="wordmark">AI5K<small>Profile Intelligence</small></a>
       <nav class="header-nav">
-        <a href="/">New case</a>
-        <a href="/benchmark">Benchmark</a>
-        <a href="/examples">Examples</a>
-        <a href="/runs">Past cases</a>
+        <a href="{{ base_path }}/">New case</a>
+        <a href="{{ base_path }}/benchmark">Benchmark</a>
+        <a href="{{ base_path }}/examples">Examples</a>
+        {% if not static_mode %}<a href="{{ base_path }}/runs">Past cases</a>{% endif %}
       </nav>
     </div>
   </header>
