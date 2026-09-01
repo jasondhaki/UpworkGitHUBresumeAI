@@ -45,5 +45,10 @@ class Benchmark(BaseModel):
     # benchmark_target per dimension (Section 2's gap-ranking formula) — what the top tier
     # actually reaches, not a perfect 100. Keys must be exactly the DIMENSIONS names above.
     dimension_targets: dict[str, float]
-    sample_size: int  # profiles this was hand-read from; capped at 30 (Section 5)
+    sample_size: int  # profiles this was hand-read from; capped at 30 (Section 5). 0 = not sampled yet.
     built_date: date
+    # True until the real 30-profile hand-read (Section 5) replaces this benchmark's values.
+    # A structural flag, not just a comment, so the app itself can show the caveat to users
+    # instead of relying on whoever's reading the source to notice it.
+    provisional: bool = False
+    source_notes: str = ""  # what this was actually built from, and what would upgrade it

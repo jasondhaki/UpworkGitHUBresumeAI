@@ -14,6 +14,7 @@ Playwright timeout, not by reasoning about it in advance.
 import tempfile
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -26,6 +27,12 @@ from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES, stub_github_claim
 
 app = FastAPI(title="AI5K Profile Intelligence — Phase A skeleton")
 templates = Jinja2Templates(directory="app/templates")
+
+GEMINI_UNAVAILABLE_MESSAGE = (
+    "The AI extraction step failed after retrying — Gemini is likely under transient load "
+    "(we've seen real 503 \"high demand\" responses during this build). This isn't a bug; "
+    "wait a bit and try again."
+)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -50,10 +57,16 @@ def analyze(
             cv_claims = parse_cv_to_claims(tmp_path, freelancer_id="fl_stub")
         except ScannedDocumentError as e:
             return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+        except (httpx.TimeoutException, httpx.HTTPStatusError):
+            return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
         finally:
             Path(tmp_path).unlink(missing_ok=True)
 
-    upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
+    try:
+        upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
+    except (httpx.TimeoutException, httpx.HTTPStatusError):
+        return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
+
     github_claims = stub_github_claim(github_username)
     claims = cv_claims + upwork_claims + github_claims
 
@@ -63,4 +76,6 @@ def analyze(
         benchmark=STUB_BENCHMARK,
         manual_dimension_scores=STUB_MANUAL_SCORES,
     )
-    return templates.TemplateResponse(request, "result.html", {"result": result, "claims": claims})
+    return templates.TemplateResponse(
+        request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK}
+    )

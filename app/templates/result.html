@@ -3,6 +3,13 @@
 <head><meta charset="utf-8"><title>Result — AI5K Profile Intelligence</title></head>
 <body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
   <p><a href="/">&larr; back</a></p>
+  {% if benchmark.provisional %}
+  <p style="background:#fff3cd; border:1px solid #f0ad4e; padding:0.75rem; border-radius:4px;">
+    <strong>Provisional benchmark:</strong> the "{{ benchmark.niche }}" benchmark this score is measured
+    against is a best-guess estimate, not built from real competitor profiles yet ({{ benchmark.source_notes }}).
+    Treat the numbers below as directional until it's replaced with real data.
+  </p>
+  {% endif %}
   <h1>Readiness: {{ result.readiness }} / 100{% if result.capped %} (capped — evidence is self-declared only){% endif %}</h1>
 
   <h2>Dimensions</h2>

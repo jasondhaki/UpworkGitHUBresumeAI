@@ -10,6 +10,25 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-01 — Provisional benchmark unblocks Phase A; GitHub backup set up; Gemini retry logic added
+
+**What changed:**
+- User asked to stop waiting on the real 30-profile benchmark read and instead ship a provisional one now, clearly flagged, editable, replaceable later. Added `provisional: bool` and `source_notes: str` fields to the `Benchmark` schema (`schemas/benchmark.py`) — a structural flag, not just a code comment, so the app itself can show the caveat. Created `benchmarks/ai_ml_engineering_freelance.py`: 14 required terms + synonyms, rate band, dimension targets, all best-guess from general knowledge, `provisional=True`, `sample_size=0`, with an explicit in-file checklist of what to replace once the real read happens. Wired it into `app/stub_data.py` (replacing the old inline 3-term stub) and surfaced a visible warning banner on the results page when the active benchmark is provisional.
+- **Set up the GitHub repo** (`github.com/jasondhaki/UpworkGitHUBresumeAI`, public — user's explicit choice after being asked, since visibility is a real consequential decision). `gh` was already authenticated locally; the repo already existed (empty) on GitHub before this session touched it. `git init`, verified `.env` was never staged (checked explicitly before committing — the whole point of the earlier `.gitignore` work), committed everything, pushed to `main`.
+- Found and fixed two real reliability issues while re-verifying the walking skeleton after the benchmark swap, both caught by an actual browser/curl test hanging or 500'ing, not by inspection: (1) no error handling around the Gemini calls in `app/main.py` — a timeout or 5xx became a bare 500; added friendly `error.html` responses. (2) Gemini repeatedly returned real 503 "high demand" responses during testing (same message seen during initial model setup, so this is a recurring characteristic of `gemini-3.6-flash`, not a fluke) — added retry-with-backoff (3 attempts) to `app/llm/gemini_client.py`, since a caller can't fix Google-side overload by changing the request. Also bumped the per-call timeout 60s -> 90s (`gemini-3.6-flash` does internal "thinking" before responding, seen in the raw API response's `thoughtsTokenCount` field).
+- Re-verified the full path end to end after all of this (CV + Upwork + provisional benchmark + retry logic): real result page, correct provisional-banner text, `keyword_coverage` now reflects the fuller 14-term benchmark (42.9% on the test CV, down from the old 3-term stub's 100% — a more honest number, not a regression).
+
+**Why:**
+- A provisional benchmark that's honestly labeled beats staying blocked — the user's call, and a reasonable one: Phase A can keep moving on everything else while the real research happens whenever it happens, and nothing downstream can mistake the placeholder for real data because the flag is structural.
+- The 503 pattern showing up repeatedly (not just once) is worth remembering: `gemini-3.6-flash` capacity issues seem to be a real, recurring condition to design around, not a one-off blip.
+
+**Next steps:**
+- Phase A's remaining item is unchanged: the real 30-profile competitor benchmark, whenever the user has it — replaces `benchmarks/ai_ml_engineering_freelance.py`'s placeholder values per the upgrade checklist already written into that file.
+- Everything is now backed up on GitHub (`main` branch, up to date as of this entry). Future sessions should keep committing/pushing incrementally rather than letting work sit only local — no explicit re-ask needed, this was established as the expected workflow this session.
+- Dev server still running locally on port 8000.
+
+---
+
 ## 2026-09-01 — Real Upwork-paste ingestion built; async/sync bug caught and fixed
 
 **What changed:**
