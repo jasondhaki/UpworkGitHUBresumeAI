@@ -32,6 +32,26 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Deployed a static preview to GitHub Pages (live demo backend still local-only)
+
+**What changed:**
+- User asked to deploy — first "vercel it is," then clarified (after I flagged that Docling's torch-based dependencies blow past Vercel's 250MB serverless function cap) that they meant GitHub Pages instead, explicitly accepting the tradeoff of no live backend.
+- Added `scripts/build_static.py`: renders `index.html`/`benchmark.html`/`examples.html` through the existing Jinja2 templates + real `STUB_BENCHMARK` data into `docs/`, with a `base_path` prefix (`/UpworkGitHUBresumeAI`, the Pages project-site subpath) and a `static_mode` flag threaded through `base.html`/`index.html`/`examples.html`.
+- `static_mode=True` swaps the live upload form on the index page for a "static preview, clone and run locally" card and hides the "Past cases" nav link — there's no backend on Pages to serve `/analyze` or `/runs`. Benchmark and Examples pages are otherwise identical to the live app (no backend calls involved, so nothing to trim there).
+- Verified locally with a Playwright pass against a mirrored `/UpworkGitHUBresumeAI/...` path structure (zero console/network errors, screenshots checked) before pushing.
+- Enabled GitHub Pages via `gh api` (branch `main`, path `/docs`) and confirmed the live build via WebFetch: **https://jasondhaki.github.io/UpworkGitHUBresumeAI/**
+
+**Why:**
+- Docling (torch + layout models, 1.5–3GB typical install) can't fit in a serverless function regardless of Vercel plan tier — this made the original "vercel it is" request infeasible as a full-fidelity deploy without either dropping CV upload from the live path or hosting the backend on a container platform instead. User chose GitHub Pages (static-only) over those alternatives once the constraint was explained.
+- Kept the live FastAPI app (with real CV upload, Gemini calls, SQLite) working exactly as before for local/dev use — `static_mode` only branches at render time, the live routes in `main.py` are untouched.
+
+**Next steps:**
+- `scripts/build_static.py` is a manual build step, not wired to CI — re-run it and commit `docs/` after any template/CSS change meant to reach the deployed site, or the live Pages site will drift from the local app.
+- If the user later wants the live analyzer (not just marketing pages) publicly reachable, the real fix is a container host for the backend (Render/Fly.io free tier) since Docling rules out any size-capped serverless platform — noted as an open option, not started.
+- PENDING line unchanged (CV parser stress-testing / real resume run, still blocked on Gemini free-tier rate limit).
+
+---
+
 ## 2026-09-02 — Trimmed the /examples disclosure blocks per request, kept minimal honest disclosure
 
 **What changed:**
