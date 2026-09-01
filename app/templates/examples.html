@@ -1,63 +1,136 @@
 {% extends "base.html" %}
 {% block title %}Examples — AI5K{% endblock %}
+
+{% macro archetype_card(a) %}
+  <div class="card dotted archetype-card">
+    <span class="archetype-tag" style="--src-color: var(--{{ a.src }}); --src-wash: var(--{{ a.src }}-wash);">{{ a.tag }}</span>
+    <div class="archetype-title-row">
+      <div class="archetype-title">{{ a.title }}</div>
+      <div class="archetype-rate">${{ a.rate }}/hr</div>
+    </div>
+    <p class="archetype-overview">{{ a.overview }}</p>
+    <div class="archetype-skills">
+      {% for s in a.skills %}<span class="skill-pill">{{ s }}</span>{% endfor %}
+    </div>
+    <div class="archetype-foot">
+      <span>Illustrative evidence backing: {{ a.backed|safe }}</span>
+      <a href="/">Try your own case &rarr;</a>
+    </div>
+  </div>
+{% endmacro %}
+
 {% block content %}
   <section class="hero left fade-in" style="padding-top: 40px;">
     <p class="eyebrow">Illustrative examples</p>
     <h1>What winning looks like</h1>
-    <p>Three archetype profiles for the <strong>{{ benchmark.niche.replace('-', ' ') }}</strong> niche, built from real aggregate data — actual required skills, the actual rate range, the actual title and overview structure. No individual profile is quoted or reproduced.</p>
+    <p>Ten archetype profiles across the three categories the <strong>{{ benchmark.niche.replace('-', ' ') }}</strong> benchmark was built from, spanning the real variety in the data — agentic/automation, computer vision, MLOps, research, and product-focused profiles. No individual profile is quoted or reproduced.</p>
   </section>
 
   <div class="synthetic-banner fade-in fade-in-1">
-    <strong>These are synthetic.</strong> Not real Upwork listings, not anonymized excerpts of anyone's real profile — invented example text that follows the real patterns from the 30-profile benchmark read. Skills and rates are drawn from real data; every word of title and overview copy below was written for this page, not lifted or paraphrased from any individual. See <a href="/benchmark">the benchmark page</a> for the real underlying numbers.
+    <strong>These are synthetic.</strong> Not real Upwork listings, not anonymized excerpts of anyone's real profile — invented example text that follows the real patterns from the 30-profile benchmark read. Skills and rates are drawn from real data; every word of title and overview copy below was written for this page, not lifted or paraphrased from any individual — see the "why not real excerpts" note at the bottom for the reasoning. <a href="/benchmark">The benchmark page</a> has the real underlying numbers.
   </div>
 
-  {% set archetypes = [
+  {% set ai_engineer = [
     {
-      "tag": "AI Engineer archetype", "src": "src-github",
+      "tag": "Agentic AI / RAG", "src": "src-github",
       "title": "AI Engineer | Agentic Systems & RAG Pipelines", "rate": 45,
       "skills": ["AI agent development", "RAG", "agent framework", "Python", "LLM API integration", "vector database"],
       "overview": "Manual workflows eating your team's time? I build AI agents that take real actions — pulling data, calling tools, and completing multi-step tasks without a human in the loop. Recent work: a RAG-based support agent that cut response time from hours to minutes for a mid-size SaaS team, grounded in their own documentation instead of guessing. Send your workflow and I'll map out where an agent can take over within a week.",
       "backed": "3 deployed repos (T2) &middot; 1 proctored certification (T4) &middot; 9 client reviews (T1)",
     },
     {
-      "tag": "Machine Learning Engineer archetype", "src": "src-cv",
+      "tag": "Multi-Agent / Automation", "src": "src-github",
+      "title": "Senior AI Engineer | Multi-Agent Systems & Workflow Automation", "rate": 65,
+      "skills": ["AI agent development", "automation", "agent framework", "chatbot development", "Python"],
+      "overview": "Your team is still doing by hand what software could be doing at 2am. I design multi-agent systems and automation pipelines that take over repetitive, multi-step work and run unattended, with monitoring built in from day one. Most engagements start with one high-friction workflow, prove it out in production, then expand from there. Tell me what's eating the most hours on your team this month.",
+      "backed": "6 deployed repos (T2) &middot; 14 client reviews (T1)",
+    },
+    {
+      "tag": "Conversational AI", "src": "src-github",
+      "title": "AI Engineer | Conversational AI & Voice Agents", "rate": 40,
+      "skills": ["chatbot development", "AI agent development", "LLM API integration", "Python", "fastapi"],
+      "overview": "A chatbot that can't hold a real conversation just frustrates customers. I build conversational AI and voice agents that understand context across a multi-turn exchange, connect to your real backend systems, and hand off to a human cleanly when they should. If your current bot script is more \"if/else\" than intelligence, let's talk about what a real upgrade looks like.",
+      "backed": "2 deployed repos (T2) &middot; 5 client reviews (T1)",
+    },
+    {
+      "tag": "AI App / Full-Stack", "src": "src-github",
+      "title": "Full-Stack AI Engineer | AI App & SaaS Development", "rate": 50,
+      "skills": ["AI app development", "Python", "fastapi", "cloud platform", "generative AI"],
+      "overview": "Most \"AI features\" are a thin wrapper around an API call with no real product thinking behind them. I build AI-native applications from the database up — auth, data model, and UI designed around what the AI actually needs to do its job well, not bolted on after the fact. I ship fast, but I don't skip the boring parts that make the difference between a demo and something you can charge for.",
+      "backed": "4 deployed repos (T2) &middot; badge certification (T5) &middot; 7 client reviews (T1)",
+    },
+  ] %}
+
+  {% set ml_engineer = [
+    {
+      "tag": "Computer Vision", "src": "src-cv",
       "title": "Machine Learning Engineer | Computer Vision & Deep Learning", "rate": 55,
       "skills": ["machine learning", "deep learning", "computer vision", "deep learning framework", "cloud platform"],
       "overview": "I design and deploy computer vision models that hold up outside a research notebook — object detection, segmentation, and video pipelines running in production on AWS and GCP. Past work spans medical imaging, retail analytics, and sports tracking, with as much attention to latency and cost as to accuracy on a benchmark. Share a sample of your image or video data and I'll scope the architecture.",
       "backed": "5 deployed repos (T2) &middot; platform assessment (T3) &middot; 4 client reviews (T1)",
     },
     {
-      "tag": "LLM Engineer archetype", "src": "src-upwork",
+      "tag": "MLOps / Data Engineering", "src": "src-cv",
+      "title": "MLOps Engineer | ML Pipelines & Cloud Deployment", "rate": 60,
+      "skills": ["MLOps", "machine learning", "cloud platform", "containerization", "Python"],
+      "overview": "A model that works on your laptop and a model that works in production are two different problems, and most teams underestimate the gap. I build the pipelines, monitoring, and deployment infrastructure that keeps ML systems reliable once real traffic hits them — versioned data, reproducible training runs, and rollbacks that actually work when something breaks. If your ML team is spending more time firefighting than building, that's usually a pipeline problem, not a modeling one.",
+      "backed": "7 deployed repos (T2) &middot; proctored certification (T4) &middot; 3 client reviews (T1)",
+    },
+    {
+      "tag": "Applied ML Research", "src": "src-cv",
+      "title": "Machine Learning Engineer | Applied Research & Model Development", "rate": 75,
+      "skills": ["machine learning", "deep learning", "Artificial Intelligence", "NLP", "deep learning framework"],
+      "overview": "I read the papers so you don't have to, then figure out which ideas are actually worth shipping versus which ones only work in a controlled benchmark. My background is applied research, but I care more about a model that ships and holds up than one that scores well on a leaderboard. If you've got a hard modeling problem that's stalled, that's usually where I'm most useful.",
+      "backed": "3 deployed repos (T2) &middot; 2 client reviews (T1)",
+    },
+  ] %}
+
+  {% set llm_engineer = [
+    {
+      "tag": "Fine-Tuning Specialist", "src": "src-upwork",
       "title": "Senior LLM Engineer | Fine-Tuning & Prompt Engineering", "rate": 70,
       "skills": ["LLM", "LLM fine-tuning", "prompt engineering", "generative AI", "NLP"],
       "overview": "Off-the-shelf prompts only get you so far before they break on your real use cases. I fine-tune and evaluate LLMs against your actual data (LoRA/QLoRA), then wire the result into a production pipeline with proper evaluation, not vibes-based testing. Tell me your use case and I'll tell you honestly whether fine-tuning is worth it, or a strong prompt would do the job for less.",
       "backed": "2 deployed repos (T2) &middot; proctored certification (T4) &middot; 6 client reviews (T1)",
     },
+    {
+      "tag": "LLM / NLP Research", "src": "src-upwork",
+      "title": "LLM Engineer | NLP Research & Model Fine-Tuning", "rate": 50,
+      "skills": ["LLM", "NLP", "LLM fine-tuning", "generative AI", "Claude"],
+      "overview": "Most fine-tuning projects fail quietly: the model looks fine in a demo and falls apart on real inputs because nobody built a proper evaluation set first. I come from an NLP research background and I build the eval harness before I touch the training run, so we actually know if a fine-tune helped or just felt like progress. I work with open models directly, not just API wrappers, when that's what the problem calls for.",
+      "backed": "4 deployed repos (T2) &middot; 3 client reviews (T1)",
+    },
+    {
+      "tag": "Generative AI Product", "src": "src-upwork",
+      "title": "Generative AI Engineer | LLM-Powered Product Development", "rate": 58,
+      "skills": ["generative AI", "LLM API integration", "Claude", "vector database", "prompt engineering"],
+      "overview": "Turning \"we should use AI for this\" into a feature that ships is a different skill than writing a research paper about it. I build generative AI features end to end — the prompt design, the retrieval layer when it needs real context, and the product glue that makes it feel native instead of bolted on. I've shipped generative features for teams who'd never touched an LLM before mine.",
+      "backed": "5 deployed repos (T2) &middot; 8 client reviews (T1)",
+    },
   ] %}
 
   <div class="section sec-generated fade-in fade-in-2">
-    {% for a in archetypes %}
-    <div class="card dotted archetype-card">
-      <span class="archetype-tag" style="--src-color: var(--{{ a.src }}); --src-wash: var(--{{ a.src }}-wash);">{{ a.tag }}</span>
-      <div class="archetype-title-row">
-        <div class="archetype-title">{{ a.title }}</div>
-        <div class="archetype-rate">${{ a.rate }}/hr</div>
-      </div>
-      <p class="archetype-overview">{{ a.overview }}</p>
-      <div class="archetype-skills">
-        {% for s in a.skills %}<span class="skill-pill">{{ s }}</span>{% endfor %}
-      </div>
-      <div class="archetype-foot">
-        <span>Illustrative evidence backing: {{ a.backed|safe }}</span>
-        <a href="/">Try your own case &rarr;</a>
-      </div>
-    </div>
-    {% endfor %}
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5V15.5M6 15.5c0-3 2-4 6-4h4"/></svg>AI Engineer archetypes</h2>
+    <p class="section-caption">4 patterns spanning what real "AI Engineer" search results actually look like.</p>
+    {% for a in ai_engineer %}{{ archetype_card(a) }}{% endfor %}
   </div>
 
-  <div class="pull-quote fade-in fade-in-2">
-    <p class="eyebrow">Where these numbers come from</p>
-    <blockquote>Real rate distribution, real required skills, real title and overview structure — from 30 actual Top Rated profiles.</blockquote>
-    <cite><a href="/benchmark">See the full benchmark &rarr;</a></cite>
+  <div class="section sec-dims fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>Machine Learning Engineer archetypes</h2>
+    <p class="section-caption">3 patterns — computer vision, infrastructure, and research-leaning profiles.</p>
+    {% for a in ml_engineer %}{{ archetype_card(a) }}{% endfor %}
+  </div>
+
+  <div class="section sec-ledger fade-in fade-in-2">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1-4L16 5l3 3-11 11-4 1z"/><path d="M14 7l3 3"/></svg>LLM Engineer archetypes</h2>
+    <p class="section-caption">3 patterns — fine-tuning, research, and product-building profiles.</p>
+    {% for a in llm_engineer %}{{ archetype_card(a) }}{% endfor %}
+  </div>
+
+  <div class="section fade-in fade-in-2">
+    <h2>Why not real excerpts?</h2>
+    <p class="section-caption" style="max-width: 62ch;">
+      Removing a name doesn't fully solve two separate problems: distinctive details (a specific dollar figure, a named client, a portfolio project title) can still make someone identifiable even without their name attached, and the overview text is each person's own original writing — copyright doesn't require a name to apply, so stripping one doesn't create permission to republish it elsewhere. Both are true independent of Upwork's own terms restricting reuse of profile content off-platform. The archetypes above get you the same lesson (what actually wins in this niche) from the real aggregate patterns, without that exposure.
+    </p>
   </div>
 {% endblock %}
