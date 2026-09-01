@@ -8,7 +8,25 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 - Update this at the end of every session (see `CLAUDE.md` — it's a standing instruction now, not something to remember manually).
 - Revisit it at the start of any session, even a small one, before making changes.
 
-**PENDING (as of 2026-09-02):** verify all seven scoring dimensions live end-to-end (CV + Upwork + generation together), stress-test the CV parser against a few more differently-structured CVs, and **run the user's real resume (`RESUME.pdf`, gitignored, lives in the project root locally — not in git) through the full pipeline** — all three blocked on the same Gemini free-tier rate limit. Re-checked directly with a minimal API call (not just via the app) at the end of the day and confirmed it's still a hard 429, not a transient 503 — quota genuinely hasn't reset yet. Check the live limit at https://aistudio.google.com/rate-limit rather than guessing timing. First thing to do in the next session that touches this project. See the top log entry below for full detail.
+**PENDING (as of 2026-09-02):** stress-test the CV parser against a few more differently-structured CVs, and **run the user's real resume (`RESUME.pdf`, gitignored, lives in the project root locally — not in git) through the full pipeline** — both blocked on Gemini's free-tier rate limit, which is proving to be a very tight, intermittent allowance rather than a clean daily reset: one live call succeeded (GitHub ingestion + generation, all 7 scoring dimensions, confirmed working end-to-end for real — that item is DONE, off this list), then the very next attempt (the real resume) hit a hard 429 again seconds later. Don't assume "it worked once" means it's clear — verify each attempt independently. Check the live limit at https://aistudio.google.com/rate-limit if guessing timing isn't working. First thing to do in the next session that touches this project. See the top log entry below for full detail.
+
+---
+
+## 2026-09-02 — Found and fixed a real crash bug (zero Gemini cost); confirmed Gemini quota is a tight intermittent trickle, not a clean reset
+
+**What changed:**
+- User said to keep moving and let Gemini-blocked work wait. Found genuinely valuable non-Gemini work instead of idling: `.docx` support had been claimed (`FileType.DOCX` exists) but never actually tested end to end — verified it for the first time with a real generated `.docx` fixture; works correctly.
+- Stress-tested `file_router.py` against edge cases that fail *before* Gemini is ever reached (so fully testable regardless of quota): a garbage-bytes file wearing a `.pdf` extension, an empty `.pdf`, wrong extensions. **Found a real, previously-unknown bug**: a corrupted/non-PDF file raises `docling.exceptions.ConversionError`, which nothing caught — a real user hitting this case today would have gotten a raw 500 crash, not a clean error message. Fixed by adding `InvalidDocumentError` (distinct from `ScannedDocumentError` — this is "not parseable at all," not "parseable but no text layer") and catching Docling's `ConversionError` around the conversion call. Verified the fix both directly and through the live running app.
+- **Gemini quota briefly opened up mid-session**: a live GitHub-only integration test (ingestion → all 7 scoring dimensions → generation → storage → display → history) succeeded for real — correctly grounded title/overview with real numbers traced to real GitHub claims. That's the "verify all seven dimensions live end-to-end" PENDING item, genuinely done now (via GitHub+generation rather than the originally-planned CV+Upwork combination, but it exercises the same formulas with real generated content either way).
+- Immediately tried the real resume next while the window seemed open — it hit a hard 429 within seconds of the prior success. **This is an important nuance to remember**: the quota is not resetting cleanly; it's granting a very small, intermittent allowance. One successful call is not evidence the block has lifted — checked directly again after the failure and confirmed still 429. Stopped there rather than keep spending attempts chasing a trickle.
+
+**Why:**
+- The corrupted-file bug is exactly the value of doing edge-case testing that doesn't depend on the blocked resource — it would never have been found by waiting for Gemini, since it fails upstream of any API call.
+- Worth stating plainly for future sessions: "quota partially working" and "quota reset" are different states, and treating the former as the latter would waste the few real calls available on avoidable failures.
+
+**Next steps:**
+- PENDING line updated: CV stress-testing and the real resume test remain, dimension verification is done.
+- Not yet committed/pushed — do that next.
 
 ---
 

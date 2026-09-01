@@ -15,6 +15,7 @@ from enum import Enum
 from pathlib import Path
 
 from docling.document_converter import DocumentConverter
+from docling.exceptions import ConversionError as DoclingConversionError
 
 MIN_CHARS_PER_ITEM_AVG = 15  # a native doc's text items average far more than this; a scan is ~0
 
@@ -28,6 +29,16 @@ class FileType(str, Enum):
 class ScannedDocumentError(Exception):
     """Raised when a PDF has no meaningfully extractable text — a scan wearing
     a PDF extension. Fail loudly here; do not let silent garbage into claims."""
+
+
+class InvalidDocumentError(Exception):
+    """Raised when the file isn't parseable at all — corrupted, truncated, or
+    garbage bytes wearing a .pdf/.docx extension. Distinct from
+    ScannedDocumentError (a *readable* file with no text layer): this is a file
+    Docling can't even open. Found by testing a deliberately garbage .pdf --
+    the underlying docling.exceptions.ConversionError was uncaught before this,
+    so a real user hitting this case would have seen a raw 500, not a clean
+    error message."""
 
 
 @dataclass
@@ -57,7 +68,14 @@ def extract_text_blocks(path: str | Path) -> list[TextBlock]:
     if file_type == FileType.UNSUPPORTED:
         raise ValueError(f"{path}: unsupported file type — Phase 1 only handles PDF and DOCX")
 
-    result = _converter.convert(str(path))
+    try:
+        result = _converter.convert(str(path))
+    except DoclingConversionError as e:
+        raise InvalidDocumentError(
+            f"{path}: couldn't be opened as a {file_type.value.upper()} file — it may be corrupted, "
+            "truncated, or not actually a document of that type despite the extension."
+        ) from e
+
     items = [t for t in result.document.texts if t.text.strip()]
 
     if not items or (sum(len(t.text) for t in items) / len(items)) < MIN_CHARS_PER_ITEM_AVG:

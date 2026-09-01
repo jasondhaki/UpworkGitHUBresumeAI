@@ -20,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.generation.title_overview import generate_title_and_overview
 from app.ingestion.cv_parser import parse_cv_to_claims
-from app.ingestion.file_router import ScannedDocumentError
+from app.ingestion.file_router import InvalidDocumentError, ScannedDocumentError
 from app.ingestion.github_parser import GitHubRateLimitError, GitHubUserNotFoundError, parse_github_to_claims
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.engine import score_profile
@@ -59,7 +59,7 @@ def analyze(
         stored_path = save_uploaded_file(cv_file.file.read(), cv_file.filename)
         try:
             cv_claims = parse_cv_to_claims(str(stored_path), freelancer_id="fl_stub")
-        except ScannedDocumentError as e:
+        except (ScannedDocumentError, InvalidDocumentError) as e:
             return templates.TemplateResponse(request, "error.html", {"message": str(e)})
         except (httpx.TimeoutException, httpx.HTTPStatusError):
             return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
