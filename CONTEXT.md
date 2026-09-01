@@ -10,6 +10,27 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — All seven scoring dimensions now real; hit the actual Gemini rate limit doing it
+
+**What changed:**
+- Built real formulas for the five dimensions that were still placeholder numbers (`app/scoring/dimensions.py`): `completeness` and `portfolio_quality` are fully deterministic checklists/claim-counts (no LLM needed — Section 2 doesn't actually require judgment for these, just presence/absence and counting); `pricing_strategy` is deterministic given one new input (a stated hourly rate — nothing collected that before, added a form field for it); `positioning` and `conversion` are **documented rules-based proxies**, not real semantic judgment — Section 2 describes both in genuinely semantic terms ("stated specifically enough to be found and believed", "addresses the buyer's problem"), which a cheap heuristic can only approximate, not actually assess. Chose the proxy route over spending a Gemini call per profile on subjective rating, consistent with the API call discipline — flagged clearly in both dimensions' docstrings so the approximation is never mistaken for the real thing.
+- **Restructured the request flow**: generation now runs *before* scoring, not after — positioning/conversion need the generated title/overview as input, so the old "score, then bolt generation on" order no longer works. `score_profile()` no longer takes `manual_dimension_scores`; it takes `generated` and `stated_rate` instead and computes all seven dimensions itself. Updated every call site (`app/main.py`, all affected smoke tests).
+- Added a `stated_rate` field to the intake form — optional, used by `pricing_strategy` and one `completeness` checklist item.
+- Verified the new formulas with fake data first (`app/scoring/smoke_test.py`, rewritten): confirmed by hand-checking the math that a modest rate scores as more "defensible" than a top-of-band rate when evidence is thin (100 vs. ~17.7 on `pricing_strategy`), and that positioning/completeness/portfolio_quality all respond correctly to a richer claim set with real generated content attached.
+- Re-verified two zero-cost Phase C hardening cases against the actual running server: the scanned-PDF-rejection path still works correctly end to end (a sparse-text PDF correctly triggers `ScannedDocumentError`, not a silent bad parse), and invalid `stated_rate` input (non-numeric) is caught and shown a clean error rather than crashing.
+- **Hit Gemini's actual rate limit** (HTTP 429, not just the 503 "high demand" seen earlier) trying to do one deliberate live end-to-end pass of the new formulas together with real generation. This is the exact scenario the user flagged when asking for the API call discipline — today's testing volume across the whole session actually exhausted the free-tier quota, not just hit transient overload. Stopped retrying rather than hammering it further once the error type made that clear.
+
+**Why:**
+- Building positioning/conversion as honestly-labeled proxies rather than spending a Gemini call per profile matches both the plan's own preference for rules-based logic where possible and the new API discipline — the alternative (an LLM judgment call for every scored profile) would eat real ongoing rate-limit budget for something a heuristic can approximate well enough for a demo.
+- The 429 is worth remembering as a concrete data point: this session's cumulative testing volume alone can exhaust the free tier in a single day. Future sessions should treat that as a real constraint, not a hypothetical one.
+
+**Next steps:**
+- **Live confirmation still pending**: all five new formulas are proven correct against fake data with hand-checked math, and the wiring is code-reviewed, but a real full-pipeline pass (CV + Upwork + generation + all seven real dimensions together) hasn't succeeded live yet — blocked on the rate limit, not a known bug. Worth doing once quota resets (check the live limit at https://aistudio.google.com/rate-limit rather than guessing timing), but not urgent given fake-data confidence is already high.
+- Remaining Phase C item: stress-testing the CV parser against a few more differently-structured CVs ("five different CVs parse without crashing") — also blocked on the same rate limit for now, since CV parsing needs a real Gemini call.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Benchmark upgraded from guesswork to research-informed (deliberate detour from Phase B/C)
 
 **What changed:**

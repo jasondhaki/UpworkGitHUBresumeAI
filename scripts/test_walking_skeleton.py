@@ -14,8 +14,11 @@ with sync_playwright() as p:
         'One client wrote, "The workflow he built runs flawlessly and saved us thousands of dollars."'
     )
     page.set_input_files("#cv_file", "scripts/fixtures_sample_cv.pdf")
-    page.fill("#github_username", "torvalds")
+    # Skipping GitHub username this run -- torvalds's Linux-kernel repos are a known
+    # mismatch for this niche (see CONTEXT.md); leaving it out keeps this test focused
+    # on the actually-new code (the 5 new dimension formulas + stated_rate).
     page.fill("#upwork_text", upwork_sample)
+    page.fill("#stated_rate", "95")
     page.click("button[type=submit]")
     page.wait_for_load_state("networkidle", timeout=90000)
 

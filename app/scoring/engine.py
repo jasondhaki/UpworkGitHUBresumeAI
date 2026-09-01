@@ -1,19 +1,27 @@
 """Ties dimensions.py + gap_ranking.py together into a Result.
 
-score_profile() is the one function the rest of the app calls. The
-`manual_dimension_scores` argument exists only because five of the seven
-dimensions don't have a formula yet (see dimensions.py) — Phase A proves the
-aggregation math (weights, both caps, gap ranking, dependency gating) works
-end to end, using real formulas for the two dimensions that have one and
-placeholder inputs for the rest. As real logic lands for each remaining
-dimension, delete its entry from `manual_dimension_scores` callers pass in.
+score_profile() is the one function the rest of the app calls. All seven
+dimensions now have real formulas (see dimensions.py — two exact per Section
+2, two fully deterministic checklists, one deterministic given a stated rate,
+and two documented rules-based proxies for the inherently semantic ones).
+`generated` must be computed BEFORE calling this — positioning and
+conversion read the generated title/overview, so generation runs first in
+the actual request flow (app/main.py), not after scoring like it used to.
 """
 
 from schemas.benchmark import DIMENSIONS, Benchmark
 from schemas.claim import Claim
 from schemas.result import BlockingItem, DimensionScore, GeneratedContent, Result
 
-from .dimensions import compute_evidence_quality, compute_keyword_coverage
+from .dimensions import (
+    compute_completeness,
+    compute_conversion,
+    compute_evidence_quality,
+    compute_keyword_coverage,
+    compute_portfolio_quality,
+    compute_positioning,
+    compute_pricing_strategy,
+)
 from .gap_ranking import compute_gaps, select_top_five
 
 DIMENSION_WEIGHTS: dict[str, float] = {
@@ -34,20 +42,23 @@ def score_profile(
     freelancer_id: str,
     claims: list[Claim],
     benchmark: Benchmark,
-    manual_dimension_scores: dict[str, float],
+    generated: GeneratedContent | None = None,
+    stated_rate: float | None = None,
     blocking: list[BlockingItem] | None = None,
 ) -> Result:
+    generated = generated or GeneratedContent()
+
     evidence_score, all_self_declared = compute_evidence_quality(claims)
     keyword_score = compute_keyword_coverage(claims, benchmark)
 
     raw_scores = {
-        "positioning": manual_dimension_scores.get("positioning", 0.0),
+        "positioning": compute_positioning(claims, generated, benchmark),
         "evidence_quality": evidence_score,
         "keyword_coverage": keyword_score,
-        "portfolio_quality": manual_dimension_scores.get("portfolio_quality", 0.0),
-        "completeness": manual_dimension_scores.get("completeness", 0.0),
-        "conversion": manual_dimension_scores.get("conversion", 0.0),
-        "pricing_strategy": manual_dimension_scores.get("pricing_strategy", 0.0),
+        "portfolio_quality": compute_portfolio_quality(claims, benchmark),
+        "completeness": compute_completeness(claims, generated, stated_rate),
+        "conversion": compute_conversion(generated),
+        "pricing_strategy": compute_pricing_strategy(stated_rate, benchmark, evidence_score),
     }
 
     dimensions: dict[str, DimensionScore] = {
@@ -74,5 +85,5 @@ def score_profile(
         dimensions=dimensions,
         blocking=blocking or [],
         gaps=top_gaps,
-        generated=GeneratedContent(),
+        generated=generated,
     )

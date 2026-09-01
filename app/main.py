@@ -25,7 +25,7 @@ from app.ingestion.github_parser import GitHubRateLimitError, GitHubUserNotFound
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.engine import score_profile
 from app.storage import get_analysis_run, list_analysis_runs, save_analysis_run, save_uploaded_file
-from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES
+from app.stub_data import STUB_BENCHMARK
 
 app = FastAPI(title="AI5K Profile Intelligence — Phase A skeleton")
 templates = Jinja2Templates(directory="app/templates")
@@ -48,6 +48,7 @@ def analyze(
     cv_file: UploadFile | None = None,
     github_username: str = Form(default=""),
     upwork_text: str = Form(default=""),
+    stated_rate: str = Form(default=""),
 ):
     cv_claims = []
     if cv_file is not None and cv_file.filename:
@@ -79,20 +80,33 @@ def analyze(
 
     claims = cv_claims + upwork_claims + github_claims
 
+    parsed_rate: float | None = None
+    if stated_rate.strip():
+        try:
+            parsed_rate = float(stated_rate.strip())
+        except ValueError:
+            return templates.TemplateResponse(
+                request, "error.html", {"message": f"'{stated_rate}' isn't a valid hourly rate — enter a number."}
+            )
+
+    # Generation runs BEFORE scoring now: positioning/conversion read the generated
+    # title/overview (see dimensions.py). Additive, not load-bearing -- if it fails,
+    # scoring still proceeds with generated=None (those two dimensions score 0,
+    # matching the plan's own fallback: "drop generation, a score and a ranked gap
+    # list still proves the concept").
+    generated = None
+    try:
+        generated = generate_title_and_overview(claims, STUB_BENCHMARK.title_formula)
+    except (httpx.TimeoutException, httpx.HTTPStatusError):
+        pass
+
     result = score_profile(
         freelancer_id="fl_stub",
         claims=claims,
         benchmark=STUB_BENCHMARK,
-        manual_dimension_scores=STUB_MANUAL_SCORES,
+        generated=generated,
+        stated_rate=parsed_rate,
     )
-
-    # Generation is additive, not load-bearing: if it fails, the score and gap list
-    # still stand on their own (matches the plan's own fallback: "drop generation,
-    # a score and a ranked gap list still proves the concept").
-    try:
-        result.generated = generate_title_and_overview(claims, STUB_BENCHMARK.title_formula)
-    except (httpx.TimeoutException, httpx.HTTPStatusError):
-        pass
 
     run_id = save_analysis_run("fl_stub", claims, result)
 

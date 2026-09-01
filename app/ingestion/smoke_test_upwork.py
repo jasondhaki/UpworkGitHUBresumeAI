@@ -6,7 +6,7 @@ rules documented in upwork_parser.py.
 
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.engine import score_profile
-from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES
+from app.stub_data import STUB_BENCHMARK
 
 SAMPLE_TEXT = """I'm an automation specialist helping SMBs eliminate manual busywork. Over the past 3 years I've built more than 25 automated workflows using n8n and Make.com for e-commerce and logistics clients.
 
@@ -41,7 +41,6 @@ result = score_profile(
     freelancer_id="fl_upwork_test",
     claims=claims,
     benchmark=STUB_BENCHMARK,
-    manual_dimension_scores=STUB_MANUAL_SCORES,
 )
 print(f"\nreadiness: {result.readiness} | capped: {result.capped}")
 print(f"evidence_quality: {result.dimensions['evidence_quality'].current:.1f}")

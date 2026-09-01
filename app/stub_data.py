@@ -1,16 +1,9 @@
-"""What's still not real, for the five dimensions without a formula yet
-(see app/scoring/engine.py's docstring) and the benchmark re-export.
+"""Re-exports the active benchmark for the app to import.
 
-CV, Upwork-paste, and GitHub ingestion are all real now (app/ingestion/).
-Only the five scoring dimensions without a Section-2 formula remain fake.
+All seven scoring dimensions now have real formulas (app/scoring/engine.py) —
+there's no longer any manual/placeholder dimension data. This module is a
+thin re-export at this point; kept as a separate module in case a future
+niche switch needs to swap which benchmark file gets imported here.
 """
 
 from benchmarks.ai_ml_engineering_freelance import BENCHMARK as STUB_BENCHMARK
-
-STUB_MANUAL_SCORES = {
-    "positioning": 55.0,
-    "portfolio_quality": 60.0,
-    "completeness": 70.0,
-    "conversion": 40.0,
-    "pricing_strategy": 50.0,
-}

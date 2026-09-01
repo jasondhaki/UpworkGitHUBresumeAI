@@ -4,7 +4,7 @@ docstring for why) — safe to run freely, doesn't touch the Gemini rate limit.
 
 from app.ingestion.github_parser import parse_github_to_claims
 from app.scoring.engine import score_profile
-from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES
+from app.stub_data import STUB_BENCHMARK
 
 claims = parse_github_to_claims("torvalds", freelancer_id="fl_github_test")
 
@@ -24,7 +24,6 @@ result = score_profile(
     freelancer_id="fl_github_test",
     claims=claims,
     benchmark=STUB_BENCHMARK,
-    manual_dimension_scores=STUB_MANUAL_SCORES,
 )
 print(f"readiness: {result.readiness} | capped: {result.capped}")
 print(f"evidence_quality: {result.dimensions['evidence_quality'].current:.1f}")

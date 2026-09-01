@@ -5,7 +5,7 @@ place in the build where a genuine document goes all the way through.
 
 from app.ingestion.cv_parser import parse_cv_to_claims
 from app.scoring.engine import score_profile
-from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES
+from app.stub_data import STUB_BENCHMARK
 
 PDF_PATH = "scripts/fixtures_sample_cv.pdf"
 
@@ -26,7 +26,6 @@ result = score_profile(
     freelancer_id="fl_real_cv_test",
     claims=claims,
     benchmark=STUB_BENCHMARK,
-    manual_dimension_scores=STUB_MANUAL_SCORES,
 )
 print(f"\nreadiness: {result.readiness} | capped: {result.capped}")
 print(f"evidence_quality: {result.dimensions['evidence_quality'].current:.1f}")
