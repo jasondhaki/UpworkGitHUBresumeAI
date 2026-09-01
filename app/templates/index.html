@@ -1,10 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
+  <div class="hero-band"></div>
   <section class="hero">
     <p class="eyebrow">New case</p>
     <h1>Open a case</h1>
     <p>Submit your evidence — a CV, a GitHub handle, your Upwork profile text — and get a readiness reading where every number traces back to exactly where it came from.</p>
   </section>
+
+  <div class="source-row">
+    <div class="source-chip src-cv">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5" /><path d="M9 13h6M9 17h6M9 9h2"/></svg>
+      <div class="label">CV</div>
+      <p>Docling reads the document, Gemini decides which lines carry real evidence.</p>
+    </div>
+    <div class="source-chip src-github">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5V15.5M6 15.5c0-3 2-4 6-4h4"/></svg>
+      <div class="label">GitHub</div>
+      <p>Real repos, real stars, real dates — read straight from the API, no interpretation needed.</p>
+    </div>
+    <div class="source-chip src-upwork">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+      <div class="label">Upwork</div>
+      <p>Your own profile text, pasted directly — a quoted client review outweighs a claim about yourself.</p>
+    </div>
+  </div>
+
+  <div class="tier-legend">
+    <p class="tier-legend-title">Eight evidence tiers — strongest first</p>
+    <div class="tier-legend-row">
+      {% for t, w, label in [
+        ('T1', 1.00, 'Client-verified'), ('T2', 0.85, 'Project demonstrated'), ('T3', 0.80, 'Platform-assessed'),
+        ('T4', 0.75, 'Certified (proctored)'), ('T5', 0.55, 'Certified (badge)'), ('T6', 0.50, 'Employer-confirmed'),
+        ('T7', 0.30, 'Peer-endorsed'), ('T8', 0.15, 'Self-declared')
+      ] %}
+      <div class="tier-legend-item">
+        <span class="tier" style="--strength: {{ w }}">{{ t }}</span>
+        <span class="label">{{ label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 
   <form class="card" action="/analyze" method="post" enctype="multipart/form-data">
     <div class="field">

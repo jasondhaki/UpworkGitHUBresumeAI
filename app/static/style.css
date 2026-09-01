@@ -29,6 +29,32 @@
   --flag: #9b3b34;
   --flag-wash: #f5e4e2;
 
+  /* Source colors -- each ingestion source gets its own hue, used on badges,
+     the ledger, and the hero diagram. Not arbitrary: these are the three
+     real evidence channels the system reads (Section 3). */
+  --src-cv: #3d5a80;
+  --src-cv-wash: #e3e9f1;
+  --src-github: #6b4c8a;
+  --src-github-wash: #ece3f1;
+  --src-upwork: #2f7a4f;
+  --src-upwork-wash: #e1efe6;
+
+  /* Dimension colors -- one per scoring dimension (Section 2's seven), used
+     on the dimension bars so each row is visually distinct at a glance. */
+  --dim-positioning: #3d5a80;
+  --dim-evidence_quality: #a8752e;
+  --dim-keyword_coverage: #2f7a76;
+  --dim-portfolio_quality: #8a4a6b;
+  --dim-completeness: #3f7a4f;
+  --dim-conversion: #b5622a;
+  --dim-pricing_strategy: #5b5a94;
+
+  /* Score-range colors -- the stamp's ring recolors with the actual grade,
+     same three-band logic a credit report or audit score would use. */
+  --score-low: #9b3b34;
+  --score-mid: #b8752e;
+  --score-high: #3f7a4f;
+
   --font-display: 'IBM Plex Serif', Georgia, serif;
   --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
@@ -43,7 +69,9 @@ html { color-scheme: light; }
 
 body {
   margin: 0;
-  background: var(--paper);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(23, 27, 33, 0.06) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 15px;
@@ -133,7 +161,21 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .section h2 {
   font-size: 19px;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+.section h2 svg {
+  width: 18px;
+  height: 18px;
+  color: var(--section-color, var(--brass));
+  flex: 0 0 auto;
+}
+.section.sec-dims { --section-color: var(--dim-positioning); }
+.section.sec-flags { --section-color: var(--flag); }
+.section.sec-gaps { --section-color: var(--brass); }
+.section.sec-generated { --section-color: var(--src-github); }
+.section.sec-ledger { --section-color: var(--src-upwork); }
 .section-caption {
   color: var(--ink-soft);
   font-size: 13.5px;
@@ -143,7 +185,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 /* ---------- intake form ---------- */
 
 .hero {
-  padding: 56px 0 8px;
+  padding: 40px 0 8px;
+}
+.hero-band {
+  height: 6px;
+  margin: 0 -24px 40px;
+  background: linear-gradient(90deg, var(--src-cv), var(--src-github), var(--src-upwork), var(--brass));
 }
 .hero h1 {
   font-size: 34px;
@@ -156,6 +203,65 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
   max-width: 46ch;
   margin-top: 14px;
 }
+
+/* ---------- source explainer row ---------- */
+
+.source-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 32px 0 40px;
+}
+.source-chip {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--src-color);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.source-chip.src-cv { --src-color: var(--src-cv); }
+.source-chip.src-github { --src-color: var(--src-github); }
+.source-chip.src-upwork { --src-color: var(--src-upwork); }
+.source-chip svg { color: var(--src-color); width: 20px; height: 20px; margin-bottom: 10px; }
+.source-chip .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--src-color);
+  margin-bottom: 4px;
+}
+.source-chip p { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+
+/* ---------- evidence tier legend ---------- */
+
+.tier-legend {
+  margin-bottom: 44px;
+}
+.tier-legend-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+.tier-legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tier-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 5px 10px 5px 6px;
+}
+.tier-legend-item span.label { font-size: 11.5px; color: var(--ink-soft); }
 
 .card {
   background: var(--paper-raised);
@@ -268,29 +374,36 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 
 .score-stamp {
   flex: 0 0 auto;
-  width: 148px;
-  height: 148px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
-  border: 2px solid var(--brass);
+  border: 3px solid var(--stamp-color, var(--brass));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
+  background: color-mix(in srgb, var(--stamp-color, var(--brass)) 6%, var(--paper-raised));
 }
 .score-stamp::before {
   content: "";
   position: absolute;
-  inset: 6px;
-  border: 1px solid var(--brass);
+  inset: 7px;
+  border: 1px solid var(--stamp-color, var(--brass));
   border-radius: 50%;
-  opacity: 0.5;
+  opacity: 0.45;
 }
+.score-stamp.score-low { --stamp-color: var(--score-low); }
+.score-stamp.score-mid { --stamp-color: var(--score-mid); }
+.score-stamp.score-high { --stamp-color: var(--score-high); }
+.score-stamp .score-number { color: var(--stamp-color, var(--ink)); }
 .score-stamp.capped {
   border-style: dashed;
   border-color: var(--slate);
+  --stamp-color: var(--slate);
 }
 .score-stamp.capped::before { border-style: dashed; border-color: var(--slate); opacity: 0.6; }
+.score-stamp.capped .score-number { color: var(--ink); }
 
 .score-number {
   font-family: var(--font-display);
@@ -344,7 +457,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 
 .dim-row {
   display: grid;
-  grid-template-columns: 118px 1fr 78px;
+  grid-template-columns: 142px 1fr 78px;
   align-items: center;
   gap: 14px;
   padding: 9px 0;
@@ -355,10 +468,21 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .dim-name {
   font-size: 13px;
   color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dim-name::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dim-color, var(--brass));
+  flex: 0 0 auto;
 }
 .dim-track {
   position: relative;
-  height: 8px;
+  height: 10px;
   background: var(--slate-wash);
   border-radius: 2px;
   overflow: visible;
@@ -366,7 +490,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .dim-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: var(--brass);
+  background: var(--dim-color, var(--brass));
   border-radius: 2px;
 }
 .dim-target-tick {
@@ -510,13 +634,22 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 }
 .ledger-row:last-child { border-bottom: none; }
 .ledger-source {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--ink-faint);
-  flex: 0 0 64px;
-  padding-top: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--src-color, var(--ink-soft));
+  background: var(--src-wash, var(--slate-wash));
+  border-radius: 2px;
+  padding: 3px 7px;
+  flex: 0 0 auto;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
+.ledger-source.src-cv { --src-color: var(--src-cv); --src-wash: var(--src-cv-wash); }
+.ledger-source.src-github { --src-color: var(--src-github); --src-wash: var(--src-github-wash); }
+.ledger-source.src-upwork { --src-color: var(--src-upwork); --src-wash: var(--src-upwork-wash); }
 .ledger-text { flex: 1; color: var(--ink); }
 .ledger-weight { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); flex: 0 0 auto; padding-top: 2px; }
 
@@ -540,7 +673,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 /* ---------- error page ---------- */
 
 .error-card {
-  margin-top: 48px;
+  margin-top: 8px;
   border: 1px solid var(--line);
   border-left: 3px solid var(--flag);
   background: var(--paper-raised);
@@ -556,7 +689,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
   .container { padding: 0 16px 64px; }
   .hero h1 { font-size: 27px; }
   .result-head { flex-direction: column; gap: 20px; }
-  .dim-row { grid-template-columns: 90px 1fr 60px; gap: 8px; }
+  .dim-row { grid-template-columns: 100px 1fr 58px; gap: 6px; }
+  .source-row { grid-template-columns: 1fr; }
   .gap-row { grid-template-columns: 1fr auto; }
 }
 

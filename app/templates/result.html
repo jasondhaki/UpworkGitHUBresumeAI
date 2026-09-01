@@ -13,6 +13,8 @@
 
 {% block content %}
 
+  <div class="hero-band"></div>
+
   {% if benchmark.provisional %}
   <div class="banner">
     <strong>Provisional benchmark.</strong> The "{{ benchmark.niche }}" benchmark this case is measured
@@ -21,8 +23,12 @@
   </div>
   {% endif %}
 
+  {% if result.readiness >= 70 %}{% set score_class = 'score-high' %}
+  {% elif result.readiness >= 40 %}{% set score_class = 'score-mid' %}
+  {% else %}{% set score_class = 'score-low' %}{% endif %}
+
   <div class="result-head">
-    <div class="score-stamp {% if result.capped %}capped{% endif %}">
+    <div class="score-stamp {{ score_class }} {% if result.capped %}capped{% endif %}">
       <div class="score-number">{{ result.readiness }}</div>
       <div class="score-max">/ 100</div>
     </div>
@@ -38,11 +44,11 @@
     </div>
   </div>
 
-  <div class="section">
-    <h2>Dimensions</h2>
+  <div class="section sec-dims">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>Dimensions</h2>
     <p class="section-caption">Current standing against this niche's benchmark target, by weight.</p>
     {% for name, d in result.dimensions.items() %}
-    <div class="dim-row">
+    <div class="dim-row" style="--dim-color: var(--dim-{{ name }})">
       <div class="dim-name">{{ name.replace('_', ' ') }}</div>
       <div class="dim-track">
         <div class="dim-fill" style="width: {{ d.current }}%"></div>
@@ -54,8 +60,8 @@
     <p class="legend"><span class="ex"></span>tick marks the benchmark target — not a perfect 100</p>
   </div>
 
-  <div class="section">
-    <h2>Fix before publishing</h2>
+  <div class="section sec-flags">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 3v18"/><path d="M5 4h11l-2.5 3.5L16 11H5"/></svg>Fix before publishing</h2>
     <p class="section-caption">Liabilities, not optimization opportunities. These sit outside the ranked list below regardless of effort.</p>
     {% if result.blocking %}
       {% for b in result.blocking %}
@@ -69,8 +75,8 @@
     {% endif %}
   </div>
 
-  <div class="section">
-    <h2>Where to focus next</h2>
+  <div class="section sec-gaps">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg>Where to focus next</h2>
     <p class="section-caption">Ranked by score points returned per hour of effort.</p>
     {% if result.gaps %}
       {% for g in result.gaps %}
@@ -88,8 +94,8 @@
     {% endif %}
   </div>
 
-  <div class="section">
-    <h2>Rewritten profile</h2>
+  <div class="section sec-generated">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1-4L16 5l3 3-11 11-4 1z"/><path d="M14 7l3 3"/></svg>Rewritten profile</h2>
     <p class="section-caption">A claim with no source span is never published — it's withheld instead.</p>
 
     <div class="generated-block">
@@ -113,12 +119,13 @@
     </div>
   </div>
 
-  <div class="section">
-    <h2>Evidence ledger</h2>
+  <div class="section sec-ledger">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Evidence ledger</h2>
     <p class="section-caption">Every claim behind the score above, strongest first.</p>
+    {% set src_class = {'cv': 'src-cv', 'github': 'src-github', 'upwork_paste': 'src-upwork'} %}
     {% for c in claims|sort(attribute='weight', reverse=True) %}
     <div class="ledger-row">
-      <div class="ledger-source">{{ c.source_type.value.replace('_paste', '') }}</div>
+      <div class="ledger-source {{ src_class.get(c.source_type.value, '') }}">{{ c.source_type.value.replace('_paste', '') }}</div>
       <span class="tier" style="--strength: {{ c.weight }}">{{ c.tier.value }}</span>
       <div class="ledger-text">{{ c.text }}</div>
       <div class="ledger-weight">{{ "%.2f"|format(c.weight) }}</div>

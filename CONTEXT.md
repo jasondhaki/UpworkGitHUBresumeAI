@@ -32,6 +32,27 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Design felt too bland/empty; pushed a lot more color and content in, still tied to real data
+
+**What changed:**
+- User feedback on the first design pass: too refined-into-emptiness, too much flat white, wanted it "populated with stuff and colors" relevant to the project. Fair critique — the earlier restraint (spend boldness in one place) read as sparse rather than considered once actually shown. Responded by expanding the palette substantially rather than defending the minimal version.
+- Added three new color systems, each tied to real data (not decoration): **per-source colors** (CV/GitHub/Upwork each get a distinct hue, used on ledger badges and a new source-explainer row), **per-dimension colors** (all 7 scoring dimensions get distinct colors on the bars, so the dimension section reads as varied instead of a wall of uniform brass bars), and **score-range coloring** (the certificate stamp recolors red/amber/green by actual readiness band, same logic a credit report uses).
+- Added real content to fill the intake page, not just decoration: a three-source explainer row with icons (what CV/GitHub/Upwork ingestion actually does), and the full eight-tier evidence legend rendered with the same weight-driven tier-stamp component used throughout the app — genuinely explains the product's core mechanic before someone submits anything, while also being the most colorful/informative section on the page.
+- Added a gradient band (built from the actual source + brass accent colors, not arbitrary) across the top of every page, section icons (small inline SVGs, one per results-page section, colored to match that section's theme), and a subtle dot-grid texture on the page background to kill the flat-white feeling.
+- Refactored to a shared component (`base.html`'s `.hero-band`) rather than repeating the gradient per page.
+- Fixed one real layout bug caught by re-screenshotting after the change: "keyword coverage" wrapped awkwardly in the fixed-width dimension-label column once colored dots were added; widened the column. Also added a mobile breakpoint for the new source-explainer row (3 columns → 1 on small screens), which the first pass hadn't needed.
+- Re-verified visually at desktop width via fresh screenshots before calling it done, not just by reading the CSS.
+
+**Why:**
+- The lesson from the first design pass held (screenshot and self-critique rather than trust the code), but the actual creative call — how much restraint versus richness — needed real user feedback to get right; "make deliberate choices" doesn't mean "assume minimal is always correct."
+- Kept every addition tied to real data on purpose: it would have been faster to just add arbitrary decorative color, but that contradicts the whole "evidence ledger, not decoration" concept the design is built on. Richer does not have to mean less meaningful.
+
+**Next steps:**
+- PENDING line unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Real UI/UX design pass: the app now looks like a considered product, not a walking skeleton
 
 **What changed:**
