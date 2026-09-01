@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Examples — AI5K{% endblock %}
+{% block content %}
+  <section class="hero left fade-in" style="padding-top: 40px;">
+    <p class="eyebrow">Illustrative examples</p>
+    <h1>What winning looks like</h1>
+    <p>Three archetype profiles for the <strong>{{ benchmark.niche.replace('-', ' ') }}</strong> niche, built from real aggregate data — actual required skills, the actual rate range, the actual title and overview structure. No individual profile is quoted or reproduced.</p>
+  </section>
+
+  <div class="synthetic-banner fade-in fade-in-1">
+    <strong>These are synthetic.</strong> Not real Upwork listings, not anonymized excerpts of anyone's real profile — invented example text that follows the real patterns from the 30-profile benchmark read. Skills and rates are drawn from real data; every word of title and overview copy below was written for this page, not lifted or paraphrased from any individual. See <a href="/benchmark">the benchmark page</a> for the real underlying numbers.
+  </div>
+
+  {% set archetypes = [
+    {
+      "tag": "AI Engineer archetype", "src": "src-github",
+      "title": "AI Engineer | Agentic Systems & RAG Pipelines", "rate": 45,
+      "skills": ["AI agent development", "RAG", "agent framework", "Python", "LLM API integration", "vector database"],
+      "overview": "Manual workflows eating your team's time? I build AI agents that take real actions — pulling data, calling tools, and completing multi-step tasks without a human in the loop. Recent work: a RAG-based support agent that cut response time from hours to minutes for a mid-size SaaS team, grounded in their own documentation instead of guessing. Send your workflow and I'll map out where an agent can take over within a week.",
+      "backed": "3 deployed repos (T2) &middot; 1 proctored certification (T4) &middot; 9 client reviews (T1)",
+    },
+    {
+      "tag": "Machine Learning Engineer archetype", "src": "src-cv",
+      "title": "Machine Learning Engineer | Computer Vision & Deep Learning", "rate": 55,
+      "skills": ["machine learning", "deep learning", "computer vision", "deep learning framework", "cloud platform"],
+      "overview": "I design and deploy computer vision models that hold up outside a research notebook — object detection, segmentation, and video pipelines running in production on AWS and GCP. Past work spans medical imaging, retail analytics, and sports tracking, with as much attention to latency and cost as to accuracy on a benchmark. Share a sample of your image or video data and I'll scope the architecture.",
+      "backed": "5 deployed repos (T2) &middot; platform assessment (T3) &middot; 4 client reviews (T1)",
+    },
+    {
+      "tag": "LLM Engineer archetype", "src": "src-upwork",
+      "title": "Senior LLM Engineer | Fine-Tuning & Prompt Engineering", "rate": 70,
+      "skills": ["LLM", "LLM fine-tuning", "prompt engineering", "generative AI", "NLP"],
+      "overview": "Off-the-shelf prompts only get you so far before they break on your real use cases. I fine-tune and evaluate LLMs against your actual data (LoRA/QLoRA), then wire the result into a production pipeline with proper evaluation, not vibes-based testing. Tell me your use case and I'll tell you honestly whether fine-tuning is worth it, or a strong prompt would do the job for less.",
+      "backed": "2 deployed repos (T2) &middot; proctored certification (T4) &middot; 6 client reviews (T1)",
+    },
+  ] %}
+
+  <div class="section sec-generated fade-in fade-in-2">
+    {% for a in archetypes %}
+    <div class="card dotted archetype-card">
+      <span class="archetype-tag" style="--src-color: var(--{{ a.src }}); --src-wash: var(--{{ a.src }}-wash);">{{ a.tag }}</span>
+      <div class="archetype-title-row">
+        <div class="archetype-title">{{ a.title }}</div>
+        <div class="archetype-rate">${{ a.rate }}/hr</div>
+      </div>
+      <p class="archetype-overview">{{ a.overview }}</p>
+      <div class="archetype-skills">
+        {% for s in a.skills %}<span class="skill-pill">{{ s }}</span>{% endfor %}
+      </div>
+      <div class="archetype-foot">
+        <span>Illustrative evidence backing: {{ a.backed|safe }}</span>
+        <a href="/">Try your own case &rarr;</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="pull-quote fade-in fade-in-2">
+    <p class="eyebrow">Where these numbers come from</p>
+    <blockquote>Real rate distribution, real required skills, real title and overview structure — from 30 actual Top Rated profiles.</blockquote>
+    <cite><a href="/benchmark">See the full benchmark &rarr;</a></cite>
+  </div>
+{% endblock %}

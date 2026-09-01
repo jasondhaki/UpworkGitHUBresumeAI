@@ -125,6 +125,11 @@ def benchmark(request: Request):
     return templates.TemplateResponse(request, "benchmark.html", {"benchmark": STUB_BENCHMARK})
 
 
+@app.get("/examples", response_class=HTMLResponse)
+def examples(request: Request):
+    return templates.TemplateResponse(request, "examples.html", {"benchmark": STUB_BENCHMARK})
+
+
 @app.get("/runs", response_class=HTMLResponse)
 def list_runs(request: Request):
     runs = list_analysis_runs("fl_stub")

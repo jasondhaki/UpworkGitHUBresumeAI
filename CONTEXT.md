@@ -32,6 +32,24 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Asked for real anonymized profiles on the site; built synthetic archetypes instead, with the reasoning made explicit
+
+**What changed:**
+- User asked for a page showing the 30 benchmark profiles' "design" — explicitly said no private info, just structure, so users can see what wins in the industry. Good instinct, but flagged a real distinction before building anything: even fully anonymized (no names), reproducing real individuals' actual profile *text* — specific overview wording, specific numbers, specific portfolio project names — on another public page is still risky two ways: (1) often identifiable via distinctive phrasing even without a name, (2) it's their own original writing, republished elsewhere without consent. That's the same reasoning that kept the raw 30-profile data out of the repo in the first place; showing "anonymized" individual cards would have quietly reversed that decision without saying so.
+- Gave the user a real choice via `AskUserQuestion` rather than either silently building the risky version or silently substituting something safer without explanation: synthetic archetype cards (recommended), a pure aggregate/statistical view with no profile-shaped cards, or proceeding with real anonymized excerpts after talking through the risk more. User chose synthetic archetypes.
+- **Built `/examples`**: three archetype cards (AI Engineer / Machine Learning Engineer / LLM Engineer — matching the three real search categories the benchmark was built from), each with invented title/overview copy written specifically for this page, but using only real data where real data exists — every skill tag cross-checked line-by-line against the actual `REQUIRED_TERMS` list before use, rates chosen within the real $15-120 band. A prominent banner states plainly these are synthetic, not reproductions, with a link to `/benchmark` for the real underlying numbers.
+- Verified at desktop and mobile widths.
+
+**Why:**
+- The user's actual goal (show what wins, build trust/credibility) doesn't require reproducing real people's writing — it requires showing the real *patterns*, which the benchmark data already captures. Synthetic archetypes serve the goal without the risk.
+- Explaining the concern and offering the choice, rather than just declining or just complying, keeps the user in control of a decision that's genuinely theirs to make — they might have had context that changed the calculus (they didn't, but the point of asking is not assuming that in advance).
+
+**Next steps:**
+- PENDING line unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Removed the fabricated hero cards; added a real /benchmark page
 
 **What changed:**

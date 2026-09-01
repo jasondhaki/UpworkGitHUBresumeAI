@@ -507,6 +507,41 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .runs-table td { padding: 13px 0; border-bottom: 1px solid var(--border-soft); }
 .runs-table td.score { font-family: var(--font-mono); }
 
+/* ---------- examples page (synthetic archetypes) ---------- */
+
+.synthetic-banner {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--src-github);
+  background: var(--src-github-wash);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--text-soft);
+  margin: 24px 0 8px;
+}
+.synthetic-banner strong { color: var(--src-github); }
+
+.archetype-card { padding: 26px 28px; margin-bottom: 22px; }
+.archetype-card:last-child { margin-bottom: 0; }
+.archetype-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--src-color, var(--brass-deep));
+  background: var(--src-wash, var(--brass-wash));
+  border-radius: 20px;
+  padding: 4px 11px;
+  margin-bottom: 14px;
+}
+.archetype-title-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.archetype-title { font-family: var(--font-display); font-size: 20px; color: var(--text); }
+.archetype-rate { font-family: var(--font-mono); font-size: 15px; color: var(--brass-deep); flex: 0 0 auto; }
+.archetype-overview { font-size: 14px; line-height: 1.7; color: var(--text-soft); margin-bottom: 16px; }
+.archetype-skills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.archetype-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 14px; border-top: 1px dashed var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
+
 /* ---------- benchmark page ---------- */
 
 .verify-badge {
