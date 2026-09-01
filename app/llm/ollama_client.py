@@ -16,7 +16,11 @@ import os
 import httpx
 
 OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+# qwen2.5:7b over llama3.2:3b -- empirically compared on this app's actual extraction
+# task (see CONTEXT.md, 2026-09-02): same reliability, qwen followed the "skip
+# rate/logistics-only blocks" instruction correctly where llama3.2:3b didn't, and
+# per-call latency was roughly a wash on this machine (16GB RAM, no discrete GPU).
+MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
 
 
 def generate_json(prompt: str, response_schema: dict, timeout: float = 300.0) -> dict:

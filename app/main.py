@@ -37,10 +37,10 @@ app = FastAPI(title="AI5K Profile Intelligence")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-GEMINI_UNAVAILABLE_MESSAGE = (
-    "The AI extraction step failed after retrying — Gemini is likely under transient load "
-    "(we've seen real 503 \"high demand\" responses during this build). This isn't a bug; "
-    "wait a bit and try again."
+LLM_UNAVAILABLE_MESSAGE = (
+    "The AI extraction step failed after retrying — the configured model backend is either "
+    "under transient load or unreachable (if LLM_PROVIDER=ollama, check that Ollama is running "
+    "locally). This isn't a bug; wait a bit and try again."
 )
 
 
@@ -69,12 +69,12 @@ def analyze(
         except (ScannedDocumentError, InvalidDocumentError) as e:
             return templates.TemplateResponse(request, "error.html", {"message": str(e)})
         except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
-            return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
+            return templates.TemplateResponse(request, "error.html", {"message": LLM_UNAVAILABLE_MESSAGE})
 
     try:
         upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
     except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
-        return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
+        return templates.TemplateResponse(request, "error.html", {"message": LLM_UNAVAILABLE_MESSAGE})
 
     github_claims = []
     if github_username.strip():

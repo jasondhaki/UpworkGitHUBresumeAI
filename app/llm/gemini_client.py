@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL = "gemini-3.6-flash"
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 BASE_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
