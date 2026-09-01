@@ -7,12 +7,15 @@ and two documented rules-based proxies for the inherently semantic ones).
 `generated` must be computed BEFORE calling this — positioning and
 conversion read the generated title/overview, so generation runs first in
 the actual request flow (app/main.py), not after scoring like it used to.
+Blocking items (blocking.py) are now real too, not just plumbed through and
+always empty — see that module for exactly what's detected and what isn't.
 """
 
 from schemas.benchmark import DIMENSIONS, Benchmark
 from schemas.claim import Claim
 from schemas.result import BlockingItem, DimensionScore, GeneratedContent, Result
 
+from .blocking import detect_blocking_items
 from .dimensions import (
     compute_completeness,
     compute_conversion,
@@ -78,12 +81,15 @@ def score_profile(
     all_gaps = compute_gaps(dimensions)
     top_gaps = select_top_five(all_gaps)
 
+    if blocking is None:
+        blocking = detect_blocking_items(claims, benchmark)
+
     return Result(
         freelancer_id=freelancer_id,
         readiness=readiness,
         capped=all_self_declared,
         dimensions=dimensions,
-        blocking=blocking or [],
+        blocking=blocking,
         gaps=top_gaps,
         generated=generated,
     )

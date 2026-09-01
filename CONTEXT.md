@@ -12,6 +12,24 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Blocking-item detection built (the one gap that wasn't blocked on anything)
+
+**What changed:**
+- User asked for an honest status check against the plan's own Definition of Done. Surfaced a real gap that had gone unflagged until asked directly: `Result.blocking` was fully plumbed through the UI and storage, but nothing ever populated it — every run to date had `blocking: []` by default because the detection logic itself was never built, only the pipe for it.
+- Built `app/scoring/blocking.py` with two deterministic, well-grounded checks: (1) **missing identity verification** — always true for every Phase 1 profile, since "accounts and login" is explicit out-of-scope, so there is no verification mechanism at all; flagging this honestly matches the plan's own example verbatim. (2) **unproven core claims** — for each of the niche's required skills that a profile actually claims, find the *strongest* evidence backing it; if the strongest evidence for a claimed core skill is T8 (self-declared, zero corroboration), flag it as a liability, not just a scoring gap.
+- **Deliberately did not build a third check** the spec names — "ToS risk." There's no well-grounded, non-speculative way to detect that from a claim set with what this build actually has (no client NDAs, no platform terms to check against). Building a fake detector just to populate the category would produce exactly the false confidence this whole system exists to prevent, so it's documented as intentionally absent rather than faked.
+- Wired into `score_profile()`: `blocking` defaults to real auto-detection now instead of always being `[]`; still accepts an explicit override (including `blocking=[]`) for testing.
+- Verified with fake data (new `app/scoring/smoke_test_blocking.py`): confirmed a self-declared-only core-skill claim gets flagged, confirmed the same skill backed by real T2 evidence does NOT get flagged, confirmed `score_profile` auto-populates by default, confirmed the override still works. Also confirmed end-to-end through the actual running server with zero Gemini cost (a no-input request correctly shows the identity-verification item).
+
+**Why:**
+- This gap existed silently because nothing forced surfacing it — the field existed, the display existed, tests passed, and "blocking: []" looks identical to "no blocking items detected" unless you know to ask "wait, has this ever actually fired?" Worth remembering as a pattern: a field being wired through end-to-end is not the same claim as the logic behind it being real.
+
+**Next steps:**
+- PENDING item below is unchanged — this work didn't touch Gemini at all, so it doesn't affect the rate-limit-blocked verification.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — All seven scoring dimensions now real; hit the actual Gemini rate limit doing it
 
 **What changed:**
