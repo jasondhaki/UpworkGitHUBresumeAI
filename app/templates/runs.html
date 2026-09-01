@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Past runs — AI5K Profile Intelligence</title></head>
+<body style="font-family: sans-serif; max-width: 640px; margin: 2rem auto;">
+  <p><a href="/">&larr; new analysis</a></p>
+  <h1>Past runs</h1>
+  {% if runs %}
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width:100%">
+    <tr><th>When</th><th>Readiness</th><th></th></tr>
+    {% for r in runs %}
+    <tr>
+      <td>{{ r.created_at }}</td>
+      <td>{{ r.readiness }} / 100{% if r.capped %} (capped){% endif %}</td>
+      <td><a href="/runs/{{ r.run_id }}">view</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No saved runs yet.</p>
+  {% endif %}
+</body>
+</html>

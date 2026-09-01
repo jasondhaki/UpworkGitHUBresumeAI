@@ -10,6 +10,25 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-01 — Real persistent storage added; found and fixed a real span-grounding gap
+
+**What changed:**
+- Built `app/storage/`: SQLite (deliberate substitution for Section 7's stated PostgreSQL — free, zero-config, appropriate for one hardcoded user with no concurrent writers; the repository functions are the seam to swap behind if that ever needs to change) holding one `analysis_runs` table (JSON blobs for the full `Result` and claim list — deliberately un-normalized, no current need for cross-run querying). `files.py` persists uploaded CVs to `data/files/`. Added `data/` to `.gitignore` **before** writing anything there, since the repo is public and uploaded CVs are personal data.
+- **Found a real gap while building this**: uploaded CVs were being written to a `NamedTemporaryFile` and deleted immediately after parsing. A claim's `source_span.document_id` pointed at that temp path — meaning span grounding was only real *during* the request, not after, directly contradicting Section 2's requirement that original files stay re-readable "at generation time," not just at extraction time. Fixed by persisting the file first via `save_uploaded_file` and parsing from that permanent path instead.
+- Wired storage into `app/main.py`: every `/analyze` call now saves the full claims + result via `save_analysis_run`. Added `GET /runs` (list past analyses) and `GET /runs/{run_id}` (view one, reusing `result.html` since a `Result` deserializes back into the exact same shape whether it's live or historical).
+- Tested the storage layer with fake data first (round-trip including the computed `weight` field surviving serialization, and a missing-run-id case returning `None` not raising) — zero Gemini calls. Then hit sustained real Gemini 503s trying to do one deliberate full-pipeline browser test (CV+Upwork+GitHub+storage together) — two attempts both failed on the Gemini side, not ours (retry logic correctly produced a clean error page both times, not a crash). Rather than keep hammering an overloaded API, decoupled verification: inserted a real saved run directly via the actual `save_analysis_run` function (no Gemini needed) and confirmed both new routes (`/runs`, `/runs/{id}`) render real data correctly through actual HTTP calls. The one link not yet verified end-to-end is `/analyze` calling `save_analysis_run` after a *successful* Gemini-backed run specifically — low risk (one-line addition after an already-proven function) but worth confirming next time Gemini cooperates.
+
+**Why:**
+- The temp-file deletion bug is exactly the kind of thing worth having caught: it would have made "span grounding" a lie the moment any request finished, silently, with no error to surface it.
+- Declining to retry a third time against a visibly overloaded Gemini, and instead finding a way to verify the actually-new code without it, is the API call discipline from `CLAUDE.md` working as intended — not every verification needs a live model call if the untested part can be isolated from the flaky dependency.
+
+**Next steps:**
+- Confirm the one remaining unverified link (a real `/analyze` success actually persisting) next time a full pipeline run is done for any other reason — no need for a dedicated call just for this.
+- Remaining Phase B/C items unchanged: the real 30-profile benchmark (blocked on user), and the scoring dimensions still using placeholder numbers (positioning, portfolio_quality, completeness, conversion, pricing_strategy).
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-01 — Phase B checkpoint met: GitHub ingestion + grounded generation, all three sources real
 
 **What changed:**

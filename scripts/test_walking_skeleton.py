@@ -23,4 +23,18 @@ with sync_playwright() as p:
     print("Body text snippet:", page.inner_text("h1"))
     page.screenshot(path="scratchpad_result.png", full_page=True)
 
+    page.goto("http://127.0.0.1:8000/runs")
+    page.wait_for_load_state("networkidle")
+    print("\n--- /runs page ---")
+    print(page.inner_text("body")[:500].encode("ascii", "replace").decode())
+    page.screenshot(path="scratchpad_runs.png", full_page=True)
+
+    view_links = page.locator("a", has_text="view")
+    if view_links.count() > 0:
+        view_links.first.click()
+        page.wait_for_load_state("networkidle")
+        print("\n--- clicked into a saved run ---")
+        print("URL:", page.url)
+        print("Body text snippet:", page.inner_text("h1"))
+
     browser.close()

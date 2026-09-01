@@ -1,7 +1,9 @@
 """Walking skeleton — Phase B's checkpoint is met: CV (Docling + Gemini),
 Upwork-paste (Gemini), and GitHub (deterministic, no Gemini — see
-app/ingestion/github_parser.py) all real, feeding a real scorer and real,
-grounding-validated title/overview generation (app/generation/).
+app/ingestion/github_parser.py) all real, feeding a real scorer, real,
+grounding-validated title/overview generation (app/generation/), and now
+real persistent storage (app/storage/) instead of everything living only
+for the duration of one request.
 
 /analyze is a plain `def`, not `async def`, on purpose: it calls blocking sync
 code (Docling, sync HTTP to Gemini/GitHub). An async endpoint runs directly on
@@ -10,9 +12,6 @@ other request; a sync `def` endpoint is automatically run in a thread pool by
 Starlette instead. Caught this by watching a real request hang past a 30s
 Playwright timeout, not by reasoning about it in advance.
 """
-
-import tempfile
-from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Form, Request, UploadFile
@@ -25,6 +24,7 @@ from app.ingestion.file_router import ScannedDocumentError
 from app.ingestion.github_parser import GitHubRateLimitError, GitHubUserNotFoundError, parse_github_to_claims
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.engine import score_profile
+from app.storage import get_analysis_run, list_analysis_runs, save_analysis_run, save_uploaded_file
 from app.stub_data import STUB_BENCHMARK, STUB_MANUAL_SCORES
 
 app = FastAPI(title="AI5K Profile Intelligence — Phase A skeleton")
@@ -51,18 +51,17 @@ def analyze(
 ):
     cv_claims = []
     if cv_file is not None and cv_file.filename:
-        suffix = Path(cv_file.filename).suffix or ".pdf"
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-            tmp.write(cv_file.file.read())
-            tmp_path = tmp.name
+        # Persisted, not a temp file that gets deleted after parsing -- a claim's
+        # source_span needs to point at a file that still exists later, not just
+        # for the duration of this request (Section 2: span grounding needs the
+        # original source re-readable at generation time, not just at extraction time).
+        stored_path = save_uploaded_file(cv_file.file.read(), cv_file.filename)
         try:
-            cv_claims = parse_cv_to_claims(tmp_path, freelancer_id="fl_stub")
+            cv_claims = parse_cv_to_claims(str(stored_path), freelancer_id="fl_stub")
         except ScannedDocumentError as e:
             return templates.TemplateResponse(request, "error.html", {"message": str(e)})
         except (httpx.TimeoutException, httpx.HTTPStatusError):
             return templates.TemplateResponse(request, "error.html", {"message": GEMINI_UNAVAILABLE_MESSAGE})
-        finally:
-            Path(tmp_path).unlink(missing_ok=True)
 
     try:
         upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
@@ -95,6 +94,25 @@ def analyze(
     except (httpx.TimeoutException, httpx.HTTPStatusError):
         pass
 
+    run_id = save_analysis_run("fl_stub", claims, result)
+
     return templates.TemplateResponse(
-        request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK}
+        request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK, "run_id": run_id}
+    )
+
+
+@app.get("/runs", response_class=HTMLResponse)
+def list_runs(request: Request):
+    runs = list_analysis_runs("fl_stub")
+    return templates.TemplateResponse(request, "runs.html", {"runs": runs})
+
+
+@app.get("/runs/{run_id}", response_class=HTMLResponse)
+def view_run(request: Request, run_id: str):
+    fetched = get_analysis_run(run_id)
+    if fetched is None:
+        return templates.TemplateResponse(request, "error.html", {"message": f"No saved run with id {run_id}."})
+    result, claims = fetched
+    return templates.TemplateResponse(
+        request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK, "run_id": run_id}
     )
