@@ -122,10 +122,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .fade-in-1 { animation-delay: 0.05s; }
 .fade-in-2 { animation-delay: 0.15s; }
 .fade-in-3 { animation-delay: 0.25s; }
-@keyframes floaty {
-  0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
-  50% { transform: translateY(-8px) rotate(var(--tilt, 0deg)); }
-}
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 24px var(--stamp-glow, var(--brass-glow)), inset 0 0 20px rgba(255,255,255,0.02); }
   50% { box-shadow: 0 0 40px var(--stamp-glow, var(--brass-glow)), inset 0 0 20px rgba(255,255,255,0.02); }
@@ -250,30 +246,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .hero.left { text-align: left; padding-top: 8px; }
 .hero.left h1 { margin: 0; font-size: 34px; text-shadow: none; }
 .hero.left p { margin: 14px 0 0; }
-
-/* ---------- stacked case-card hero stage ---------- */
-
-.stage {
-  position: relative;
-  height: 300px;
-  margin: 56px 0 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.stage-card {
-  position: absolute;
-  width: 190px;
-  padding: 22px 20px;
-  text-align: center;
-  animation: floaty 7s ease-in-out infinite;
-}
-.stage-card .stage-score { font-family: var(--font-display); font-size: 30px; font-weight: 600; }
-.stage-card .stage-label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin-top: 4px; }
-.stage-card.back-l { --tilt: -7deg; transform: translateX(-150px) rotate(-7deg) scale(0.9); opacity: 0.85; z-index: 1; animation-delay: -2s; border-color: rgba(255,255,255,0.16); }
-.stage-card.back-r { --tilt: 7deg; transform: translateX(150px) rotate(7deg) scale(0.9); opacity: 0.85; z-index: 1; animation-delay: -4.5s; border-color: rgba(255,255,255,0.16); }
-.stage-card.back-l, .stage-card.back-r { background: var(--glass-solid); }
-.stage-card.front { z-index: 2; box-shadow: 0 0 60px var(--brass-glow), 0 20px 50px -20px rgba(0,0,0,0.7); }
 
 /* ---------- source explainer row (connected nodes) ---------- */
 
@@ -552,10 +524,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
   .node-row { flex-wrap: wrap; gap: 20px 12px; justify-content: center; }
   .node-line { display: none; }
   .gap-row { grid-template-columns: 1fr auto; }
-  .stage { height: 220px; }
-  .stage-card { width: 150px; padding: 16px; }
-  .stage-card.back-l { transform: translateX(-80px) rotate(-6deg) scale(0.82); }
-  .stage-card.back-r { transform: translateX(80px) rotate(6deg) scale(0.82); }
   .cta-row { grid-template-columns: 1fr; }
 }
 

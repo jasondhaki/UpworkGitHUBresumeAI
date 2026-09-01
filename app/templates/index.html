@@ -6,22 +6,7 @@
     <p style="margin-left: auto; margin-right: auto;">Submit your evidence — a CV, a GitHub handle, your Upwork profile text — and get a readiness reading where every number traces back to exactly where it came from.</p>
   </section>
 
-  <div class="stage fade-in fade-in-1">
-    <div class="stage-card glass back-l">
-      <div class="stage-score" style="color: var(--score-low);">22</div>
-      <div class="stage-label">Capped — unproven</div>
-    </div>
-    <div class="stage-card glass dotted front">
-      <div class="stage-score" style="color: var(--score-high);">78</div>
-      <div class="stage-label">Readiness / 100</div>
-    </div>
-    <div class="stage-card glass back-r">
-      <div class="stage-score" style="color: var(--score-mid);">54</div>
-      <div class="stage-label">Where to focus next</div>
-    </div>
-  </div>
-
-  <div class="node-row fade-in fade-in-2">
+  <div class="node-row fade-in fade-in-1" style="margin-top: 64px;">
     <div class="node" style="--node-color: var(--src-cv); --node-glow: rgba(110,160,224,0.35);">
       <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 13h6M9 17h6M9 9h2"/></svg></div>
       <div class="label">CV</div>
@@ -41,7 +26,7 @@
     </div>
   </div>
 
-  <div class="tier-chain-wrap fade-in fade-in-3">
+  <div class="tier-chain-wrap fade-in fade-in-2">
     <p class="eyebrow" style="justify-content: center;">Eight evidence tiers, strongest first</p>
     <div class="tier-chain">
       {% for t, w, label in [
