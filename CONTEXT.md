@@ -32,6 +32,27 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Added a local-Ollama LLM backend; Render deploy kicked off (pending user confirmation)
+
+**What changed:**
+- User found Gemini's rate limits "genuinely frustrating" for iterative local testing and asked about running a model locally instead, for demo purposes. Installed Ollama (`winget install Ollama.Ollama`) and pulled `llama3.2:3b` (default) and `qwen2.5:7b` (pulled as a heavier/slower alternative, not wired as default).
+- Added `app/llm/ollama_client.py` implementing the same `generate_json(prompt, response_schema) -> dict` contract as `gemini_client.py`, and `app/llm/client.py` which dispatches between the two by `LLM_PROVIDER` env var. Updated the 3 call sites (`cv_parser.py`, `upwork_parser.py`, `title_overview.py`) to import from `app.llm.client` instead of `app.llm.gemini_client` directly — this is the only code change needed at the call sites.
+- Real live-call testing (per `CLAUDE.md` discipline — this is a new extraction path, so real calls were warranted) surfaced a genuine local-model reliability problem, not just a wiring bug: at Ollama's default ~0.8 temperature, the exact same prompt returned anywhere from 0 to 6 claims across repeated runs. Forcing `temperature=0` alone didn't fix it — it made the model *deterministically wrong*, truncating to exactly 1 claim every run (a known failure mode: small models under JSON-schema-constrained greedy decoding tend to stop early on array outputs). Fixed by rewriting both extraction prompts (`cv_parser.py`, `upwork_parser.py`) to explicitly state the block count/range and instruct the model not to stop after the first match. Confirmed reliable across 4 consecutive real runs post-fix, for both the CV path and the Upwork-paste path, plus one real generation-pipeline run. Applied the prompt fix to both files uniformly (not just the one that failed) since it's a general robustness improvement that doesn't change Gemini's behavior.
+- Found and fixed a real, unrelated bug in passing: `.env` had `GITHUB_API_KEY` where `github_parser.py` actually reads `GITHUB_TOKEN` — the configured token was silently never applied, so GitHub calls were always hitting the 60/hour unauthenticated limit instead of 5000/hour.
+- Set `.env`'s `LLM_PROVIDER=ollama` so local is now the active default for this machine going forward (Gemini stays a one-line env-var toggle away, still the default when `LLM_PROVIDER` is unset — matters for Render, which doesn't have Ollama running).
+- Separately, user asked to deploy the live app (not just the GitHub Pages static preview) via Render, since Render's free tier runs a real container (no serverless size cap, unlike Vercel — see the entry below this one). Added `render.yaml` as a Blueprint (`GEMINI_API_KEY`/`GITHUB_TOKEN` marked `sync: false` so Render prompts for them as dashboard secrets, never committed) and confirmed locally that `uvicorn app.main:app --host 0.0.0.0 --port $PORT` binds correctly. **User was setting this up in the Render dashboard as of this entry — not yet confirmed live.** Check for a follow-up before assuming it's done.
+
+**Why:**
+- The user explicitly wants a rate-limit-free option for demo iteration, not a permanent replacement for Gemini — `LLM_PROVIDER` defaulting to `gemini` (not `ollama`) when unset means Render's deploy and any future fresh checkout stay on the real API unless someone opts in locally.
+- The prompt-truncation bug is worth remembering on its own: it's not specific to this task's schema, it's a documented general weakness of small local models with array-shaped structured outputs under low-temperature decoding. If a future prompt/schema change reintroduces silent under-extraction with Ollama, check the prompt's explicitness (block count/range, explicit "don't stop early" instruction) before assuming it's a code bug.
+
+**Next steps:**
+- Confirm whether the Render Blueprint deploy actually went live (ask the user, or check `gh`/Render if a way to verify becomes available) — this session ended before that was confirmed.
+- `qwen2.5:7b` is pulled and available as a stronger-but-slower `OLLAMA_MODEL` override if `llama3.2:3b`'s quality proves insufficient on real (non-fixture) CVs — not yet tested against it.
+- PENDING line unchanged (CV parser stress-testing / real resume run — this is actually much less blocked now that local extraction doesn't burn Gemini quota, worth revisiting soon).
+
+---
+
 ## 2026-09-02 — Deployed a static preview to GitHub Pages (live demo backend still local-only)
 
 **What changed:**
