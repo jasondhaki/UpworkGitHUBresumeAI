@@ -10,6 +10,25 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Benchmark upgraded from guesswork to research-informed (deliberate detour from Phase B/C)
+
+**What changed:**
+- User asked to pause phase progression and rebuild the AI/ML engineering benchmark properly, offering to let Claude "scrape from the internet" if needed. **Drew a clear line first**: no automated pulling of individual Upwork profile pages or search results, even though the user offered — that's the exact scraping-a-platform-on-the-user's-behalf the plan itself rules out (PROJECT_PLAN.md line 104), regardless of who nominally asks for it. Confirmed the boundary is real, not just self-imposed: attempted to fetch Upwork's own *published* rate-guide article (not an individual profile) and got HTTP 403 — Upwork blocks bot access to its own pages too.
+- Did legitimate public research instead: multiple 2026 freelance AI/ML rate reports, job-market skill-demand analysis (360k+ postings), and freelance-profile-writing best-practice guides. Rewrote `benchmarks/ai_ml_engineering_freelance.py` with this grounding: required terms expanded from 14 to 17 and reweighted toward what 2026 data actually shows growing (LLM/RAG postings up 340% since 2024, agentic AI/LangChain now a distinct fast-growing category); rate band widened and corrected from a guessed $50-150/hr to a research-backed $60-250/hr (multiple independent sources cross-checked against each other); title formula and overview structure validated against independent profile-writing research rather than changed (research confirmed the shape already in place).
+- Still kept `provisional=True` — this is a real upgrade in quality, but it's demand-side/market research, not the direct top-profile read the plan's design actually calls for, and that distinction is now explicit in the file's docstring and source_notes rather than blurred.
+- Wrote `BENCHMARK.md` — a presentation-quality doc (explicitly requested as showable to the user's boss) covering the benchmark's content, full methodology, and a **Confidence level** section that's honest per-section: required terms and rate band are medium-high confidence (real cross-checked sources), dimension targets are explicitly flagged low confidence (still essentially reasoned estimates — public research can't validate those without reading real profiles). Every source cited with links.
+- Verified the updated benchmark loads and scores correctly with zero Gemini calls (pure Python check) before committing.
+
+**Why:**
+- The user's phrasing ("you can scrape from the internet") was ambiguous enough that silently either over-complying (actually touching Upwork) or under-complying (not researching at all) both seemed like the wrong call — worth stating the boundary plainly rather than guessing which the user meant.
+- A benchmark document that oversells its own confidence would be worse than the honest placeholder it replaced, especially since this one is explicitly headed to the user's boss — the per-section confidence breakdown exists so nobody downstream mistakes "researched" for "validated."
+
+**Next steps:**
+- Back to phase progression as the user directed. Remaining Phase B/C items unchanged: the real 30-profile hand-read (still the only way to firm up dimension targets and confirm required terms against actual winning profile text — nothing this session did replaces that step, it just made the placeholder better while waiting on it), and the five scoring dimensions still using placeholder numbers.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-01 — Real persistent storage added; found and fixed a real span-grounding gap
 
 **What changed:**
