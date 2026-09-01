@@ -32,6 +32,27 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-02 — Full dark/glow redesign, following a concrete visual reference the user provided
+
+**What changed:**
+- User shared real screenshots of AuthKit (WorkOS) as a direct visual reference — dark starfield background, glowing gradient text, stacked glass cards, connected-node icon rows, animation. Said explicitly to keep our own data, not theirs. Per the design skill's own rule ("where the brief pins down a visual direction, follow it exactly"), rebuilt the entire visual system around this rather than defending the earlier light "evidence ledger" concept — a reference image is about as concrete a brief as it gets.
+- **Rebuilt the token system for dark**: near-black background (`#070a13`), a CSS-only starfield (layered radial-gradients tiled at 480px, not a real random field but reads as one), a faint grid overlay, and a soft radial glow behind the hero — all in `body::before`/`::after` so they don't scroll with the (long) report pages. Kept the exact same meaning-mapping as the light version (per-source colors, per-dimension colors, score-range colors, tier-weight-driven glow) — the mood changed, the "design IS the data" principle didn't.
+- **Adapted their signature elements to our real content** rather than copying verbatim: their "3 stacked overlapping login forms" hero became 3 stacked case-score cards (a 78/capped-22/54-focus trio) — a literal, meaningful fit since that's what this product actually outputs. Their connected-icon feature row became the CV/GitHub/Upwork source explainer, now with actual connecting dotted lines between glowing icon nodes. Added a new element their reference didn't have but our content justified: a horizontal "tier chain" — all 8 evidence tiers connected in one glowing row, brightest at T1 fading to nearly dark at T8, using the same weight-driven `--strength` variable as the ledger's tier stamps.
+- **Deliberately did not copy their testimonial section** — fabricating a quote from a fake person would be exactly the kind of unproven claim this whole product exists to catch, especially conspicuous on this specific project. Used the same glass-card visual pattern for an honest pull-quote instead, sourced from the plan's own actual governing rule ("a claim with no source span is never published..."), and replaced their generic "start building" CTA row with one real link (the actual public GitHub repo) instead of a second fabricated CTA.
+- Added tasteful, restrained CSS-only animation per the design skill's "spend it in one place" guidance: a staggered fade-in on page load, a gentle float on the stacked hero cards, a slow pulse-glow on the score stamp — `prefers-reduced-motion` still respected (already had the guard, kept it).
+- **Found and fixed two real bugs by re-screenshotting**, not just trusting the CSS: the two background stacked cards were nearly invisible (opacity too low against the dark backdrop — bumped 0.55 to 0.85 and gave them a visible border); the 8-tier chain overflowed its container with per-node text labels (an 8-word row doesn't fit at readable size) — fixed by dropping to hover-tooltips per tier plus one summary caption line instead of 8 separate labels.
+- Verified at both desktop and mobile widths after the fixes.
+
+**Why:**
+- This is the second time in this project that "screenshot before declaring done" caught something real that reading the CSS wouldn't have — worth continuing to treat visual work as needing visual verification, not code review.
+- Refusing to fabricate a testimonial wasn't just a stylistic call — it's the same principle the whole product enforces on its own users, so faking one here specifically would have undercut the pitch in a way a generic marketing site wouldn't need to worry about.
+
+**Next steps:**
+- PENDING line unchanged — none of this touched Gemini.
+- Not yet committed/pushed — do that next.
+
+---
+
 ## 2026-09-02 — Design felt too bland/empty; pushed a lot more color and content in, still tied to real data
 
 **What changed:**

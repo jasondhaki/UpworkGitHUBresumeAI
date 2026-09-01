@@ -1,47 +1,64 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="hero-band"></div>
-  <section class="hero">
-    <p class="eyebrow">New case</p>
-    <h1>Open a case</h1>
-    <p>Submit your evidence — a CV, a GitHub handle, your Upwork profile text — and get a readiness reading where every number traces back to exactly where it came from.</p>
+  <section class="hero fade-in">
+    <p class="eyebrow" style="justify-content: center;">Profile intelligence</p>
+    <h1>Every claim traced.<br>Nothing published unproven.</h1>
+    <p style="margin-left: auto; margin-right: auto;">Submit your evidence — a CV, a GitHub handle, your Upwork profile text — and get a readiness reading where every number traces back to exactly where it came from.</p>
   </section>
 
-  <div class="source-row">
-    <div class="source-chip src-cv">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5" /><path d="M9 13h6M9 17h6M9 9h2"/></svg>
-      <div class="label">CV</div>
-      <p>Docling reads the document, Gemini decides which lines carry real evidence.</p>
+  <div class="stage fade-in fade-in-1">
+    <div class="stage-card glass back-l">
+      <div class="stage-score" style="color: var(--score-low);">22</div>
+      <div class="stage-label">Capped — unproven</div>
     </div>
-    <div class="source-chip src-github">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5V15.5M6 15.5c0-3 2-4 6-4h4"/></svg>
-      <div class="label">GitHub</div>
-      <p>Real repos, real stars, real dates — read straight from the API, no interpretation needed.</p>
+    <div class="stage-card glass dotted front">
+      <div class="stage-score" style="color: var(--score-high);">78</div>
+      <div class="stage-label">Readiness / 100</div>
     </div>
-    <div class="source-chip src-upwork">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-      <div class="label">Upwork</div>
-      <p>Your own profile text, pasted directly — a quoted client review outweighs a claim about yourself.</p>
+    <div class="stage-card glass back-r">
+      <div class="stage-score" style="color: var(--score-mid);">54</div>
+      <div class="stage-label">Where to focus next</div>
     </div>
   </div>
 
-  <div class="tier-legend">
-    <p class="tier-legend-title">Eight evidence tiers — strongest first</p>
-    <div class="tier-legend-row">
+  <div class="node-row fade-in fade-in-2">
+    <div class="node" style="--node-color: var(--src-cv); --node-glow: rgba(110,160,224,0.35);">
+      <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 13h6M9 17h6M9 9h2"/></svg></div>
+      <div class="label">CV</div>
+      <div class="desc">Docling reads it, Gemini finds the evidence</div>
+    </div>
+    <div class="node-line"></div>
+    <div class="node" style="--node-color: var(--src-github); --node-glow: rgba(185,141,237,0.35);">
+      <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5V15.5M6 15.5c0-3 2-4 6-4h4"/></svg></div>
+      <div class="label">GitHub</div>
+      <div class="desc">Real repos, read straight from the API</div>
+    </div>
+    <div class="node-line"></div>
+    <div class="node" style="--node-color: var(--src-upwork); --node-glow: rgba(87,210,154,0.35);">
+      <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></div>
+      <div class="label">Upwork</div>
+      <div class="desc">A quoted review outweighs a claim about yourself</div>
+    </div>
+  </div>
+
+  <div class="tier-chain-wrap fade-in fade-in-3">
+    <p class="eyebrow" style="justify-content: center;">Eight evidence tiers, strongest first</p>
+    <div class="tier-chain">
       {% for t, w, label in [
-        ('T1', 1.00, 'Client-verified'), ('T2', 0.85, 'Project demonstrated'), ('T3', 0.80, 'Platform-assessed'),
+        ('T1', 1.00, 'Client-verified'), ('T2', 0.85, 'Demonstrated'), ('T3', 0.80, 'Platform-assessed'),
         ('T4', 0.75, 'Certified (proctored)'), ('T5', 0.55, 'Certified (badge)'), ('T6', 0.50, 'Employer-confirmed'),
         ('T7', 0.30, 'Peer-endorsed'), ('T8', 0.15, 'Self-declared')
       ] %}
-      <div class="tier-legend-item">
+      {% if not loop.first %}<div class="tier-connector" style="opacity: {{ w + 0.2 }}"></div>{% endif %}
+      <div class="tier-node" title="{{ label }}">
         <span class="tier" style="--strength: {{ w }}">{{ t }}</span>
-        <span class="label">{{ label }}</span>
       </div>
       {% endfor %}
     </div>
+    <p class="tier-chain-caption"><b>T1</b> client-verified, strongest &mdash; <b>T8</b> self-declared, weakest. Hover a tier for what it means.</p>
   </div>
 
-  <form class="card" action="/analyze" method="post" enctype="multipart/form-data">
+  <form class="card fade-in fade-in-3" action="/analyze" method="post" enctype="multipart/form-data" style="margin-top: 48px;">
     <div class="field">
       <label for="cv_file">CV</label>
       <input id="cv_file" name="cv_file" type="file" accept=".pdf,.docx">
@@ -66,4 +83,23 @@
       <button class="btn" type="submit">Analyze &rarr;</button>
     </div>
   </form>
+
+  <div class="pull-quote">
+    <p class="eyebrow">The rule everything else follows</p>
+    <blockquote>"A claim with no source span is never published — it becomes a coaching prompt instead."</blockquote>
+    <cite>— the system's own governing rule, PROJECT_PLAN.md</cite>
+  </div>
+
+  <div class="cta-row">
+    <a href="/" class="card dotted cta-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
+      <div class="cta-title">Open a case</div>
+      <p>Start a new reading right here.</p>
+    </a>
+    <a href="https://github.com/jasondhaki/UpworkGitHUBresumeAI" class="card dotted cta-card">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-1.04-.01-1.88-2.78.62-3.37-1.21-3.37-1.21-.46-1.16-1.11-1.47-1.11-1.47-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.9 1.55 2.36 1.11 2.94.85.09-.66.35-1.11.63-1.37-2.22-.25-4.56-1.13-4.56-5.02 0-1.11.39-2.02 1.03-2.73-.1-.26-.45-1.3.1-2.7 0 0 .84-.27 2.75 1.04a9.4 9.4 0 0 1 2.5-.34c.85 0 1.71.11 2.5.34 1.91-1.32 2.75-1.04 2.75-1.04.55 1.4.2 2.44.1 2.7.64.71 1.03 1.62 1.03 2.73 0 3.9-2.34 4.76-4.57 5.01.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>
+      <div class="cta-title">View the code</div>
+      <p>Public repo, real source, real commit history.</p>
+    </a>
+  </div>
 {% endblock %}

@@ -7,13 +7,11 @@
       {% set matched = claims|selectattr('claim_id', 'equalto', s.claim_id)|list %}
       <span class="citation-num"{% if matched %} title="{{ matched[0].tier.value }} · {{ matched[0].text[:90] }}"{% endif %}>{{ loop.index }}</span>
     {% endfor %}
-    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint);">traced to {{ spans|length }} claim{{ 's' if spans|length != 1 }}</span>
+    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);">traced to {{ spans|length }} claim{{ 's' if spans|length != 1 }}</span>
   </div>
 {% endmacro %}
 
 {% block content %}
-
-  <div class="hero-band"></div>
 
   {% if benchmark.provisional %}
   <div class="banner">
@@ -27,7 +25,7 @@
   {% elif result.readiness >= 40 %}{% set score_class = 'score-mid' %}
   {% else %}{% set score_class = 'score-low' %}{% endif %}
 
-  <div class="result-head">
+  <div class="result-head fade-in">
     <div class="score-stamp {{ score_class }} {% if result.capped %}capped{% endif %}">
       <div class="score-number">{{ result.readiness }}</div>
       <div class="score-max">/ 100</div>
