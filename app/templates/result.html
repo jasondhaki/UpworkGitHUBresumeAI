@@ -79,12 +79,15 @@
     {% if result.gaps %}
       {% for g in result.gaps %}
       <div class="gap-row">
-        <div>
-          <span class="gap-rank">{{ loop.index }}</span>
-          <span class="gap-name">{{ g.dimension.replace('_', ' ') }}</span>
+        <div class="gap-row-head">
+          <div>
+            <span class="gap-rank">{{ loop.index }}</span>
+            <span class="gap-name">{{ g.dimension.replace('_', ' ') }}</span>
+          </div>
+          <div class="gap-detail">{{ "%.0f"|format(g.current) }} &rarr; {{ "%.0f"|format(g.target) }} · {{ g.effort_hours }} hr</div>
+          <div class="gap-gain">+{{ g.gain }} pts</div>
         </div>
-        <div class="gap-detail">{{ "%.0f"|format(g.current) }} &rarr; {{ "%.0f"|format(g.target) }} · {{ g.effort_hours }} hr</div>
-        <div class="gap-gain">+{{ g.gain }} pts</div>
+        {% if gap_guidance.get(g.dimension) %}<p class="gap-tip">{{ gap_guidance[g.dimension] }}</p>{% endif %}
       </div>
       {% endfor %}
     {% else %}
@@ -116,6 +119,8 @@
       {% endif %}
     </div>
   </div>
+
+  {% include "_tier_legend.html" %}
 
   <div class="section sec-ledger">
     <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Evidence ledger</h2>

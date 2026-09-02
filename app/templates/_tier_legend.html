@@ -1,0 +1,25 @@
+{% set tier_defs = [
+  ('T1', 1.00, 'Client-verified', 'A client’s own words confirm it — a quoted review, testimonial, or verified rating. Nothing outranks this.'),
+  ('T2', 0.85, 'Demonstrated', 'A real, checkable artifact — a deployed repo, a live project, working code anyone can inspect.'),
+  ('T3', 0.80, 'Platform-assessed', 'A skills test or assessment run by a neutral platform — not self-reported, not vendor-issued.'),
+  ('T4', 0.75, 'Certified (proctored)', 'A certification earned under a proctored exam — identity-checked, can’t be faked by skimming a course.'),
+  ('T5', 0.55, 'Certified (badge)', 'A certificate or badge earned without proctoring — real, but easier to obtain than T4.'),
+  ('T6', 0.50, 'Employer-confirmed', 'A role or project described in enough detail to be a real claim about paid work, though not independently verified yet.'),
+  ('T7', 0.30, 'Peer-endorsed', 'A colleague’s or peer’s endorsement — social proof, but not a client or an assessment.'),
+  ('T8', 0.15, 'Self-declared', 'A skill or claim stated with no corroboration at all — the default for a bare resume skills list.'),
+] %}
+<div class="section sec-tiers">
+  <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 12l9 5 9-5M3 17l9 5 9-5"/></svg>The eight evidence tiers</h2>
+  <p class="section-caption">Every claim gets exactly one tier, strongest evidence first. A claim's tier sets its weight in every dimension above &mdash; there's no partial credit for stacking weak evidence.</p>
+  <div class="tier-legend">
+    {% for t, w, label, desc in tier_defs %}
+    <div class="tier-legend-row">
+      <span class="tier" style="--strength: {{ w }}">{{ t }}</span>
+      <div class="tier-legend-copy">
+        <div class="tier-legend-label">{{ label }} <span class="tier-legend-weight">weight {{ "%.2f"|format(w) }}</span></div>
+        <p>{{ desc }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>

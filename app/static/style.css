@@ -197,6 +197,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .section.sec-gaps { --section-color: var(--brass-deep); --section-glow: var(--brass-glow); }
 .section.sec-generated { --section-color: var(--src-github); --section-glow: rgba(185,141,237,0.5); }
 .section.sec-ledger { --section-color: var(--src-upwork); --section-glow: rgba(87,210,154,0.5); }
+.section.sec-tiers { --section-color: var(--brass-deep); --section-glow: var(--brass-glow); }
 .section-caption { color: var(--text-soft); font-size: 13.5px; margin: 0 0 22px; }
 
 /* ---------- glass card base ---------- */
@@ -445,6 +446,14 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
   opacity: calc(0.55 + var(--strength) * 0.45);
 }
 
+.tier-legend { display: flex; flex-direction: column; gap: 18px; }
+.tier-legend-row { display: flex; align-items: flex-start; gap: 16px; }
+.tier-legend-row .tier { flex: 0 0 auto; margin-top: 2px; }
+.tier-legend-copy { flex: 1 1 auto; }
+.tier-legend-label { font-size: 14px; color: var(--text); font-weight: 500; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.tier-legend-weight { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--text-faint); }
+.tier-legend-copy p { margin: 4px 0 0; font-size: 13px; line-height: 1.6; color: var(--text-soft); }
+
 /* ---------- dimension bars ---------- */
 
 .dim-row { display: grid; grid-template-columns: 142px 1fr 78px; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
@@ -469,12 +478,14 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 
 /* ---------- gap list ---------- */
 
-.gap-row { display: grid; grid-template-columns: 1fr auto auto; align-items: baseline; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border-soft); }
+.gap-row { padding: 13px 0; border-bottom: 1px solid var(--border-soft); }
 .gap-row:last-child { border-bottom: none; }
+.gap-row-head { display: grid; grid-template-columns: 1fr auto auto; align-items: baseline; gap: 12px; }
 .gap-rank { font-family: var(--font-mono); color: var(--text-faint); font-size: 12px; margin-right: 8px; }
 .gap-name { font-size: 14px; }
 .gap-detail { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-soft); }
 .gap-gain { font-family: var(--font-mono); font-size: 13px; color: var(--brass-deep); font-weight: 500; }
+.gap-tip { margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--text-faint); }
 
 /* ---------- generated content + citations ---------- */
 
@@ -612,7 +623,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
   .dim-row { grid-template-columns: 100px 1fr 58px; gap: 6px; }
   .node-row { flex-wrap: wrap; gap: 20px 12px; justify-content: center; }
   .node-line { display: none; }
-  .gap-row { grid-template-columns: 1fr auto; }
+  .gap-row-head { grid-template-columns: 1fr auto; }
   .cta-row { grid-template-columns: 1fr; }
   .stat-row { grid-template-columns: 1fr; }
   .structure-grid { grid-template-columns: 1fr; }

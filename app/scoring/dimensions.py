@@ -23,6 +23,40 @@ SELF_DECLARED_CAP = 30.0  # Section 2: evidence dimension capped at 3/10 when ev
 PROOF_ELIGIBLE_TIERS = {EvidenceTier.T1, EvidenceTier.T2, EvidenceTier.T3, EvidenceTier.T4}
 NUMBER_PATTERN = re.compile(r"\d")
 
+# One sentence per dimension, each describing what its compute_* function above
+# actually checks -- kept in this file, next to the formulas, so a formula change
+# and a stale tip can't drift apart unnoticed.
+GAP_GUIDANCE: dict[str, str] = {
+    "positioning": (
+        "Generate a title and overview that name this niche's specific tools/skills, plus a concrete "
+        "number — thin evidence produces no title or overview to score at all."
+    ),
+    "evidence_quality": (
+        "Trade self-declared skills for T1–T4 evidence: a client review, a deployed or demonstrated "
+        "project, a platform assessment, or a proctored certification."
+    ),
+    "keyword_coverage": (
+        "Mention this niche's required skills by name somewhere in your CV, GitHub, or Upwork text — a "
+        "plain skills list counts, as long as it uses a recognized term or synonym."
+    ),
+    "portfolio_quality": (
+        "Add more T1–T4 evidence with a measured outcome (a number) and a working link — item count, "
+        "quantified results, and links are each scored separately."
+    ),
+    "completeness": (
+        "This one's a straight checklist: CV, GitHub, Upwork text, a stated rate, and 5+ distinct skills "
+        "mentioned. Fill in whichever of those is still missing."
+    ),
+    "pricing_strategy": (
+        "Your stated rate needs evidence behind it — either lower it to match your current evidence "
+        "quality, or add stronger (T1–T4) evidence to justify it."
+    ),
+    "conversion": (
+        "Open the overview by naming the client's problem (“you're losing hours to...”) instead "
+        "of leading with “I” — self-referential openers score against this dimension."
+    ),
+}
+
 
 def compute_evidence_quality(claims: list[Claim]) -> tuple[float, bool]:
     """'A skill takes its strongest evidence, never the sum of weak evidence' (Section 2).
