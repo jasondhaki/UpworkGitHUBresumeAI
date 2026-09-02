@@ -13,6 +13,8 @@ Starlette instead. Caught this by watching a real request hang past a 30s
 Playwright timeout, not by reasoning about it in advance.
 """
 
+from concurrent.futures import ThreadPoolExecutor
+
 import httpx
 from fastapi import FastAPI, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
@@ -29,6 +31,7 @@ from app.ingestion.github_parser import (
     parse_github_to_claims,
 )
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
+from app.scoring.dimensions import GAP_GUIDANCE
 from app.scoring.engine import score_profile
 from app.storage import get_analysis_run, list_analysis_runs, save_analysis_run, save_uploaded_file
 from app.stub_data import STUB_BENCHMARK
@@ -36,6 +39,7 @@ from app.stub_data import STUB_BENCHMARK
 app = FastAPI(title="AI5K Profile Intelligence")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["gap_guidance"] = GAP_GUIDANCE
 
 LLM_UNAVAILABLE_MESSAGE = (
     "The AI extraction step failed after retrying — the configured model backend is either "
@@ -57,31 +61,45 @@ def analyze(
     upwork_text: str = Form(default=""),
     stated_rate: str = Form(default=""),
 ):
-    cv_claims = []
-    if cv_file is not None and cv_file.filename:
-        # Persisted, not a temp file that gets deleted after parsing -- a claim's
-        # source_span needs to point at a file that still exists later, not just
-        # for the duration of this request (Section 2: span grounding needs the
-        # original source re-readable at generation time, not just at extraction time).
-        stored_path = save_uploaded_file(cv_file.file.read(), cv_file.filename)
+    # GitHub is a plain network call, independent of CV/Upwork -- kick it off in a
+    # background thread now so it overlaps with the CV/Upwork extraction below
+    # instead of waiting its turn after them. Those two stay sequential: both hit
+    # the same local model, which serializes requests anyway, so parallelizing
+    # them wouldn't actually overlap real work, just add complexity.
+    github_executor = ThreadPoolExecutor(max_workers=1) if github_username.strip() else None
+    github_future = (
+        github_executor.submit(parse_github_to_claims, github_username.strip(), "fl_stub") if github_executor else None
+    )
+
+    try:
+        cv_claims = []
+        if cv_file is not None and cv_file.filename:
+            # Persisted, not a temp file that gets deleted after parsing -- a claim's
+            # source_span needs to point at a file that still exists later, not just
+            # for the duration of this request (Section 2: span grounding needs the
+            # original source re-readable at generation time, not just at extraction time).
+            stored_path = save_uploaded_file(cv_file.file.read(), cv_file.filename)
+            try:
+                cv_claims = parse_cv_to_claims(str(stored_path), freelancer_id="fl_stub")
+            except (ScannedDocumentError, InvalidDocumentError) as e:
+                return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+            except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
+                return templates.TemplateResponse(request, "error.html", {"message": LLM_UNAVAILABLE_MESSAGE})
+
         try:
-            cv_claims = parse_cv_to_claims(str(stored_path), freelancer_id="fl_stub")
-        except (ScannedDocumentError, InvalidDocumentError) as e:
-            return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+            upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
         except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
             return templates.TemplateResponse(request, "error.html", {"message": LLM_UNAVAILABLE_MESSAGE})
 
-    try:
-        upwork_claims = parse_upwork_text_to_claims(upwork_text, "fl_stub") if upwork_text.strip() else []
-    except httpx.HTTPError:  # covers timeouts, connection failures, and bad status codes alike
-        return templates.TemplateResponse(request, "error.html", {"message": LLM_UNAVAILABLE_MESSAGE})
-
-    github_claims = []
-    if github_username.strip():
-        try:
-            github_claims = parse_github_to_claims(github_username.strip(), "fl_stub")
-        except (GitHubUserNotFoundError, GitHubRateLimitError, GitHubUnavailableError) as e:
-            return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+        github_claims = []
+        if github_future is not None:
+            try:
+                github_claims = github_future.result()
+            except (GitHubUserNotFoundError, GitHubRateLimitError, GitHubUnavailableError) as e:
+                return templates.TemplateResponse(request, "error.html", {"message": str(e)})
+    finally:
+        if github_executor is not None:
+            github_executor.shutdown(wait=False)
 
     claims = cv_claims + upwork_claims + github_claims
 

@@ -23,7 +23,11 @@ OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
 MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
 
 
-def generate_json(prompt: str, response_schema: dict, timeout: float = 300.0) -> dict:
+def generate_json(prompt: str, response_schema: dict, timeout: float = 900.0) -> dict:
+    # 300s was enough for the small smoke-test fixture (3 blocks) but not a real,
+    # densely-bulleted resume (59 blocks) -- the model has to generate one JSON
+    # array item per block, so output length (and wall-clock time on CPU) scales
+    # with document size, not just prompt length. Found via a real end-to-end run.
     payload = {
         "model": MODEL,
         "messages": [{"role": "user", "content": prompt}],
