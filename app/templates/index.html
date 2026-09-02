@@ -52,7 +52,7 @@
     </div>
   </div>
   {% else %}
-  <form class="card fade-in fade-in-3" action="/analyze" method="post" enctype="multipart/form-data" style="margin-top: 48px;">
+  <form id="intake-form" class="card fade-in fade-in-3" action="/analyze" method="post" enctype="multipart/form-data" style="margin-top: 48px;">
     <div class="field">
       <label for="cv_file">CV</label>
       <input id="cv_file" name="cv_file" type="file" accept=".pdf,.docx">
@@ -77,6 +77,72 @@
       <button class="btn" type="submit">Analyze &rarr;</button>
     </div>
   </form>
+
+  <div id="analyzing-card" class="card" style="margin-top: 48px; display: none;">
+    <p class="eyebrow">Working</p>
+    <h2 style="margin-bottom: 4px;">Analyzing your profile</h2>
+    <p class="section-caption" style="margin-bottom: 26px;">Nothing is scored until it's traced back to a real source — each step below is a real extraction pass, not a spinner.</p>
+    <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+    <ul id="step-list" class="step-list"></ul>
+    <p class="analyzing-note">A local model runs slower than a cloud API — this can take a minute or two. Don't refresh.</p>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('intake-form');
+      var analyzingCard = document.getElementById('analyzing-card');
+      var progressFill = document.getElementById('progress-fill');
+      var stepList = document.getElementById('step-list');
+
+      form.addEventListener('submit', function () {
+        var hasCv = document.getElementById('cv_file').files.length > 0;
+        var hasGithub = document.getElementById('github_username').value.trim().length > 0;
+        var hasUpwork = document.getElementById('upwork_text').value.trim().length > 0;
+
+        // Rough durations from real local-model timing, just to pace the steps --
+        // not a promise. If Gemini's active instead this just flies through them.
+        var steps = [];
+        if (hasCv) steps.push({ label: 'Reading your CV', ms: 45000 });
+        if (hasGithub) steps.push({ label: 'Pulling your GitHub repositories', ms: 3000 });
+        if (hasUpwork) steps.push({ label: 'Reading your Upwork profile', ms: 45000 });
+        steps.push({ label: 'Scoring against the benchmark', ms: 1500 });
+        steps.push({ label: 'Writing your title and overview', ms: 40000 });
+
+        form.style.display = 'none';
+        analyzingCard.style.display = 'block';
+
+        stepList.innerHTML = steps.map(function (s, i) {
+          return '<li class="step-item" data-index="' + i + '"><span class="step-dot"></span><span>' + s.label + '</span></li>';
+        }).join('');
+        var items = stepList.querySelectorAll('.step-item');
+
+        // Precompute each step's start time up front -- scheduling setTimeout
+        // with a shared, still-incrementing "cumulative" variable would have
+        // every callback read the SAME final total by the time any of them
+        // actually fire (the forEach loop finishes synchronously first).
+        var startTimes = [];
+        var acc = 0;
+        steps.forEach(function (s) {
+          startTimes.push(acc);
+          acc += s.ms;
+        });
+        var totalMs = acc;
+
+        steps.forEach(function (s, i) {
+          setTimeout(function () {
+            items.forEach(function (el, j) {
+              el.classList.remove('active');
+              if (j < i) el.classList.add('done');
+            });
+            items[i].classList.add('active');
+            progressFill.style.width = Math.min(92, Math.round((startTimes[i] / totalMs) * 92)) + '%';
+          }, startTimes[i]);
+        });
+        // The last step deliberately stays "active" (pulsing), never "done" --
+        // only the real page navigation on server response counts as finished.
+      });
+    })();
+  </script>
   {% endif %}
 
   <div class="pull-quote">
