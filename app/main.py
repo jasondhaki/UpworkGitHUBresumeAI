@@ -15,6 +15,7 @@ Playwright timeout, not by reasoning about it in advance.
 
 import hashlib
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -57,6 +58,12 @@ LLM_UNAVAILABLE_MESSAGE = (
 # byte-for-byte match a previously computed run, so this can't silently return a
 # stale or wrong result for a genuinely new submission.
 DEMO_CACHE_PATH = Path("data/demo_cache.json")
+
+# A cache hit returning in ~0s skips right past the analyzing screen (index.html's
+# JS shows it until the page navigates, which happens the instant a response
+# arrives) -- for a live demo that looks broken, not fast. This holds the response
+# just long enough for that screen's ~10s step animation to actually play out.
+DEMO_CACHE_ARTIFICIAL_DELAY_SECONDS = 10
 
 
 def _demo_cache_key(cv_bytes: bytes | None, github_username: str, upwork_text: str, stated_rate: str) -> str:
@@ -101,6 +108,7 @@ def analyze(
         cached = get_analysis_run(cached_run_id)
         if cached is not None:
             cached_result, cached_claims = cached
+            time.sleep(DEMO_CACHE_ARTIFICIAL_DELAY_SECONDS)
             return templates.TemplateResponse(
                 request,
                 "result.html",

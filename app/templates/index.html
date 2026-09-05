@@ -99,14 +99,17 @@
         var hasGithub = document.getElementById('github_username').value.trim().length > 0;
         var hasUpwork = document.getElementById('upwork_text').value.trim().length > 0;
 
-        // Rough durations from real local-model timing, just to pace the steps --
-        // not a promise. If Gemini's active instead this just flies through them.
+        // Paced to visibly cycle through every step within ~10s -- not tied to
+        // real per-call latency, which varies wildly by backend/hardware (a
+        // real local-model run can take much longer; this just keeps showing
+        // "still working" via the last step pulsing until the real page
+        // navigates in, whenever that actually happens).
         var steps = [];
-        if (hasCv) steps.push({ label: 'Reading your CV', ms: 45000 });
-        if (hasGithub) steps.push({ label: 'Pulling your GitHub repositories', ms: 3000 });
-        if (hasUpwork) steps.push({ label: 'Reading your Upwork profile', ms: 45000 });
-        steps.push({ label: 'Scoring against the benchmark', ms: 1500 });
-        steps.push({ label: 'Writing your title and overview', ms: 40000 });
+        if (hasCv) steps.push({ label: 'Reading your CV', ms: 3200 });
+        if (hasGithub) steps.push({ label: 'Pulling your GitHub repositories', ms: 1200 });
+        if (hasUpwork) steps.push({ label: 'Reading your Upwork profile', ms: 3200 });
+        steps.push({ label: 'Scoring against the benchmark', ms: 900 });
+        steps.push({ label: 'Writing your title and overview', ms: 2500 });
 
         form.style.display = 'none';
         analyzingCard.style.display = 'block';
