@@ -12,6 +12,21 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 
 ---
 
+## 2026-09-03 — Added an exact-match demo cache so repeat demo submissions don't cost another 10-15 minutes
+
+**What changed:**
+- User's real end-to-end runs this session (CV+GitHub+Upwork+generation, all local Ollama) landed in the 10-15 minute range end to end — fine for one real verification pass, not for repeatedly showing the same case live. Added a cache to `/analyze` in `main.py`: hash the raw submitted inputs (CV bytes, github username, upwork text, stated rate) and, on an exact match against a previously computed run, return that saved result immediately instead of re-running the pipeline. Any fresh (non-cached) successful computation registers itself too, so the cache builds up automatically from normal use — no separate warm-up step is required going forward.
+- Bootstrapped the cache immediately using the real result already computed earlier this session (the direct-Python pipeline run dumped to `real_resume_dump.json`, saved via a one-off scratchpad script) rather than making the user wait through the pipeline one more time just to seed it. Verified live: the user's exact real inputs (RESUME.pdf + `jasondhaki` + the sample Upwork text + rate 65) now return in 0s instead of 10+ minutes; confirmed a genuinely different input (different github username) still correctly falls through to the real (slow) pipeline, not a false cache hit.
+- Cache is exact-hash match only (sha256 over the literal bytes/strings) — cannot serve a cached result for anything that doesn't byte-for-byte match a prior run, so this has zero effect on real/new submissions. `data/demo_cache.json` stays local and gitignored, same as the rest of `data/` — explicitly a local-demo convenience, not a production caching layer (README doesn't currently mention it; it's an implementation detail, not a documented feature).
+
+**Why:**
+- Explicitly requested as demo-only tooling ("this is just for demo purposes since we're still running locally") — the user is aware this only makes the *exact same* case instant, not general performance, which is the honest scope for a boss-facing local demo.
+
+**Next steps:**
+- None blocking. If the demo ever needs a second pre-canned case (a different resume/profile), the same seeding pattern (`real_pipeline_direct.py`-style script + `_demo_cache_key`/`_save_demo_cache_entry` from `app.main`) applies directly.
+
+---
+
 ## 2026-09-03 — Real resume run through the full pipeline for the first time; found and fixed a real timeout bug; added tier legend + per-gap guidance
 
 **What changed:**
