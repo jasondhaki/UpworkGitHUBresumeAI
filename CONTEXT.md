@@ -8,7 +8,27 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 - Update this at the end of every session (see `CLAUDE.md` — it's a standing instruction now, not something to remember manually).
 - Revisit it at the start of any session, even a small one, before making changes.
 
-**PENDING:** none currently — the real-resume run (below) closed out the last open item. Stress-testing against a few *more* differently-structured real CVs (beyond the user's own) is a nice-to-have, not blocking anything.
+**PENDING:** none blocking. Known rough edges in the new skill-audit feature (below) worth revisiting if the user asks: the open-ended "Also on your profile" list can still be long for a resume with many small projects, and non-technical claims (language certifications, business-domain phrases the CV extraction tagged as skill_ids) get the same generic "build a GitHub project" guidance as real technical skills, which doesn't quite fit.
+
+---
+
+## 2026-09-05 — Cross-source skill consistency checking: a new "Upwork skills checklist" on the result page
+
+**What changed:**
+- User asked for something specific and fairly detailed: for every skill across CV/GitHub/Upwork, check whether it's actually present in all three, and produce targeted coaching — a skill proven by real GitHub repos but missing from the Upwork profile text should say "add it to Upwork"; a skill claimed in writing but with no GitHub project backing it should say "prove it with a project"; a skill required by the niche benchmark but absent everywhere should be flagged as a real gap. Built `app/scoring/skill_audit.py`: `audit_required_terms` (checks the benchmark's ~24 terms) and `audit_claimed_skills` (checks skill_ids the CV/Upwork extraction found outside that list, e.g. "Next.js" against an AI/ML-niche benchmark that doesn't track it) — both reuse the exact same plain substring/synonym matching `compute_keyword_coverage` already uses, not embeddings.
+- A synthetic-data smoke test built directly from the user's own two examples (`smoke_test_skill_audit.py`) caught a real design bug before it shipped: the first classification logic checked "on CV OR on Upwork" as a combined "advertised" signal, which would have marked a skill well-covered as soon as it appeared on the CV — even when it was specifically missing from Upwork, the exact scenario the user described. Fixed by checking GitHub presence first, then Upwork presence specifically (not CV-or-Upwork) — the whole feature is built around "what belongs in your Upwork Skills section," so Upwork's presence is the axis that actually matters once something is proven.
+- Enriched `github_parser.py`: GitHub's API only ever reports a repo's dominant language, never its framework — there's no way to tell "used Next.js" from a repo's metadata alone unless it happens to have a matching topic tag. Added one extra read-only call per JS/TS-language repo to fetch `package.json` and pull real dependency names into the claim's `skill_ids`. Verified live against the user's real GitHub account: surfaced `next`, `react`, `tailwindcss`, `expo`, `zustand`, `react-native`, and more across several repos that plain language data had completely missed.
+- Wired into all three `result.html` render paths (fresh compute, demo-cache hit, `/runs/{id}`) via two new template context vars, computed at render time from `claims` (deterministic and free — no DB schema change needed). New `sec-skills` section in `result.html` + matching CSS.
+- The `STATUS_COVERED` (claimed and proven, no action needed) entries are dropped from the open-ended `audit_claimed_skills` list before returning — a resume with many small projects can produce 40+ distinct skill_ids, and showing every well-covered one would bury the ones that actually need action. The fixed 24-term required list is never trimmed this way (that's the "how do I fit this niche" picture, valuable in full).
+- Refreshed the seeded demo cache (see the entry below on the demo cache itself) with the enriched GitHub data — the run seeded earlier predated this change and had language-only `skill_ids`, so it couldn't demonstrate the feature at all. Readiness moved 53 → 61 with richer evidence; no new CV/Upwork LLM calls needed since that evidence was reused unchanged from the earlier real pipeline run.
+
+**Why:**
+- The "check GitHub first, not CV-or-Upwork" bug is worth remembering as a pattern: when a feature request describes two named examples, build the test from those exact examples before writing the classification logic from a paraphrased mental model of the request — the paraphrase silently dropped a distinction (which artifact specifically needs fixing) that mattered to the actual ask.
+- Chose text-matching over embeddings again for the same reason `compute_keyword_coverage` did originally (PROJECT_PLAN.md's own tested finding that embeddings don't reliably encode e.g. "Pinecone is a vector database") — consistency with an already-working mechanism beat trying something fancier for uncertain benefit.
+
+**Next steps:**
+- If the "Also on your profile" list still feels too long in practice, the fixed-list vs. open-list asymmetry (required terms always shown in full, claimed skills trimmed to non-covered) is the natural place to add more filtering, not the required-term list.
+- No current plan to classify skill_ids by type (technical vs. certification vs. business-domain) to give more specific guidance than "build a GitHub project" — flagged as a known gap, not started.
 
 ---
 
