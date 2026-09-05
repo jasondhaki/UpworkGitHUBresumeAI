@@ -487,6 +487,25 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; colo
 .gap-gain { font-family: var(--font-mono); font-size: 13px; color: var(--brass-deep); font-weight: 500; }
 .gap-tip { margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--text-faint); }
 
+/* ---------- skill checklist ---------- */
+
+.section.sec-skills { --section-color: var(--dim-keyword_coverage); --section-glow: rgba(78,205,192,0.5); }
+.skill-group-label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin: 22px 0 10px; }
+.skill-group-label:first-of-type { margin-top: 4px; }
+.skill-list { display: flex; flex-direction: column; gap: 10px; }
+.skill-row { border: 1px solid var(--border); border-left: 3px solid var(--row-color, var(--slate)); background: var(--glass); border-radius: var(--radius); padding: 12px 16px; }
+.skill-row.status-well_covered { --row-color: var(--score-high); opacity: 0.7; }
+.skill-row.status-demonstrated_not_advertised { --row-color: var(--score-mid); }
+.skill-row.status-claimed_unproven, .skill-row.status-missing { --row-color: var(--score-low); }
+.skill-row-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.skill-name { font-size: 14px; font-weight: 500; }
+.skill-required-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.03em; color: var(--text-faint); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; }
+.skill-status-tag { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--row-color, var(--text-soft)); }
+.skill-sources { display: flex; gap: 6px; margin-top: 8px; }
+.skill-src { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text-faint); border: 1px solid var(--border-soft); border-radius: 4px; padding: 2px 7px; }
+.skill-src.present { color: var(--text); border-color: var(--row-color, var(--border)); background: color-mix(in srgb, var(--row-color, var(--slate)) 12%, transparent); }
+.skill-guidance { margin: 8px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--text-soft); }
+
 /* ---------- generated content + citations ---------- */
 
 .generated-block { background: var(--glass); backdrop-filter: blur(14px); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; }

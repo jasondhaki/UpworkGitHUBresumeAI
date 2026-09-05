@@ -95,6 +95,43 @@
     {% endif %}
   </div>
 
+  {% macro skill_rows(items) %}
+    {% for s in items %}
+    <div class="skill-row status-{{ s.status }}">
+      <div class="skill-row-head">
+        <span class="skill-name">{{ s.name }}</span>
+        {% if s.required %}<span class="skill-required-tag">required for this niche</span>{% endif %}
+        <span class="skill-status-tag">{{ s.status.replace('_', ' ') }}</span>
+      </div>
+      <div class="skill-sources">
+        <span class="skill-src {% if s.on_cv %}present{% endif %}">CV</span>
+        <span class="skill-src {% if s.on_github %}present{% endif %}">GitHub</span>
+        <span class="skill-src {% if s.on_upwork %}present{% endif %}">Upwork</span>
+      </div>
+      {% if s.status != 'well_covered' %}<p class="skill-guidance">{{ s.guidance }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  {% endmacro %}
+
+  <div class="section sec-skills">
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Upwork skills checklist</h2>
+    <p class="section-caption">Every skill found across your CV, GitHub, and Upwork text, cross-checked against each other and against what "{{ benchmark.niche.replace('-', ' ') }}" profiles typically show. Add what's flagged here to your Upwork Skills section — not just this bio.</p>
+
+    {% if skill_audit_required %}
+    <p class="skill-group-label">Required for the "{{ benchmark.niche.replace('-', ' ') }}" niche</p>
+    <div class="skill-list">{{ skill_rows(skill_audit_required) }}</div>
+    {% endif %}
+
+    {% if skill_audit_claimed %}
+    <p class="skill-group-label">Also on your profile</p>
+    <div class="skill-list">{{ skill_rows(skill_audit_claimed) }}</div>
+    {% endif %}
+
+    {% if not skill_audit_required and not skill_audit_claimed %}
+    <p class="empty-note">No skills to check yet.</p>
+    {% endif %}
+  </div>
+
   <div class="section sec-generated">
     <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1-4L16 5l3 3-11 11-4 1z"/><path d="M14 7l3 3"/></svg>Rewritten profile</h2>
     <p class="section-caption">A claim with no source span is never published — it's withheld instead.</p>

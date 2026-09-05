@@ -18,6 +18,8 @@ popularity. Stars/recency are facts carried in the claim text and available
 to portfolio_quality scoring later, not a tier upgrade.
 """
 
+import base64
+import json
 import os
 from datetime import date, datetime
 
@@ -27,6 +29,12 @@ from schemas.claim import Claim, EvidenceTier, SourceSpan, SourceType
 
 GITHUB_API_BASE = "https://api.github.com"
 MAX_REPOS = 10  # cap claim count for prolific users; ranked by stars first
+# GitHub's own "language" field only ever reports the dominant LANGUAGE (e.g.
+# "TypeScript"), never the framework -- there's no API field for "uses Next.js".
+# For JS/TS repos, package.json's dependencies are the one place that's actually
+# recorded, so it's worth one extra read-only call per repo to pull real
+# framework-level evidence instead of guessing from the language alone.
+PACKAGE_JSON_LANGUAGES = {"javascript", "typescript"}
 
 
 class GitHubUserNotFoundError(Exception):
@@ -74,6 +82,27 @@ def _fetch_repos(username: str) -> list[dict]:
     return resp.json()
 
 
+def _fetch_package_deps(username: str, repo_name: str) -> list[str]:
+    """Best-effort only: no package.json (not a Node project, or it's elsewhere in a
+    monorepo), a private/renamed default branch, or any other hiccup just means no
+    extra evidence found -- not a claim-invalidating error, so every failure mode
+    here is swallowed rather than raised."""
+    try:
+        resp = httpx.get(
+            f"{GITHUB_API_BASE}/repos/{username}/{repo_name}/contents/package.json",
+            headers=_headers(),
+            timeout=15.0,
+        )
+        if resp.status_code != 200:
+            return []
+        content = base64.b64decode(resp.json()["content"]).decode("utf-8")
+        pkg = json.loads(content)
+        deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+        return [name.lower() for name in deps]
+    except (httpx.RequestError, KeyError, ValueError):
+        return []
+
+
 def parse_github_to_claims(username: str, freelancer_id: str) -> list[Claim]:
     repos = _fetch_repos(username)
     non_forks = [r for r in repos if not r.get("fork")]
@@ -102,6 +131,8 @@ def parse_github_to_claims(username: str, freelancer_id: str) -> list[Claim]:
         if language:
             skill_ids.append(language.lower().replace(" ", "_"))
         skill_ids.extend(t.lower().replace("-", "_") for t in topics)
+        if language and language.lower() in PACKAGE_JSON_LANGUAGES:
+            skill_ids.extend(_fetch_package_deps(username, name))
 
         claims.append(
             Claim(

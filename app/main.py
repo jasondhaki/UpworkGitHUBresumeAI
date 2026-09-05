@@ -37,6 +37,7 @@ from app.ingestion.github_parser import (
 from app.ingestion.upwork_parser import parse_upwork_text_to_claims
 from app.scoring.dimensions import GAP_GUIDANCE
 from app.scoring.engine import score_profile
+from app.scoring.skill_audit import audit_claimed_skills, audit_required_terms
 from app.storage import get_analysis_run, list_analysis_runs, save_analysis_run, save_uploaded_file
 from app.stub_data import STUB_BENCHMARK
 
@@ -112,7 +113,14 @@ def analyze(
             return templates.TemplateResponse(
                 request,
                 "result.html",
-                {"result": cached_result, "claims": cached_claims, "benchmark": STUB_BENCHMARK, "run_id": cached_run_id},
+                {
+                    "result": cached_result,
+                    "claims": cached_claims,
+                    "benchmark": STUB_BENCHMARK,
+                    "run_id": cached_run_id,
+                    "skill_audit_required": audit_required_terms(cached_claims, STUB_BENCHMARK),
+                    "skill_audit_claimed": audit_claimed_skills(cached_claims, STUB_BENCHMARK),
+                },
             )
 
     # GitHub is a plain network call, independent of CV/Upwork -- kick it off in a
@@ -189,7 +197,16 @@ def analyze(
     _save_demo_cache_entry(cache_key, run_id)
 
     return templates.TemplateResponse(
-        request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK, "run_id": run_id}
+        request,
+        "result.html",
+        {
+            "result": result,
+            "claims": claims,
+            "benchmark": STUB_BENCHMARK,
+            "run_id": run_id,
+            "skill_audit_required": audit_required_terms(claims, STUB_BENCHMARK),
+            "skill_audit_claimed": audit_claimed_skills(claims, STUB_BENCHMARK),
+        },
     )
 
 
@@ -216,5 +233,14 @@ def view_run(request: Request, run_id: str):
         return templates.TemplateResponse(request, "error.html", {"message": f"No saved run with id {run_id}."})
     result, claims = fetched
     return templates.TemplateResponse(
-        request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK, "run_id": run_id}
+        request,
+        "result.html",
+        {
+            "result": result,
+            "claims": claims,
+            "benchmark": STUB_BENCHMARK,
+            "run_id": run_id,
+            "skill_audit_required": audit_required_terms(claims, STUB_BENCHMARK),
+            "skill_audit_claimed": audit_claimed_skills(claims, STUB_BENCHMARK),
+        },
     )
