@@ -13,7 +13,10 @@ Starlette instead. Caught this by watching a real request hang past a 30s
 Playwright timeout, not by reasoning about it in advance.
 """
 
+import hashlib
+import json
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Form, Request, UploadFile
@@ -47,6 +50,36 @@ LLM_UNAVAILABLE_MESSAGE = (
     "locally). This isn't a bug; wait a bit and try again."
 )
 
+# Local-demo convenience only: a real end-to-end pass on CPU-only local inference
+# can take 10+ minutes for a real multi-page CV, which is fine for one-off testing
+# but not for repeatedly showing the same case to someone. Exact-hash match on the
+# raw submitted inputs -- never serves a cached result for anything that doesn't
+# byte-for-byte match a previously computed run, so this can't silently return a
+# stale or wrong result for a genuinely new submission.
+DEMO_CACHE_PATH = Path("data/demo_cache.json")
+
+
+def _demo_cache_key(cv_bytes: bytes | None, github_username: str, upwork_text: str, stated_rate: str) -> str:
+    h = hashlib.sha256()
+    h.update(cv_bytes or b"")
+    h.update(github_username.strip().encode())
+    h.update(upwork_text.strip().encode())
+    h.update(stated_rate.strip().encode())
+    return h.hexdigest()
+
+
+def _load_demo_cache() -> dict[str, str]:
+    if DEMO_CACHE_PATH.exists():
+        return json.loads(DEMO_CACHE_PATH.read_text(encoding="utf-8"))
+    return {}
+
+
+def _save_demo_cache_entry(key: str, run_id: str) -> None:
+    cache = _load_demo_cache()
+    cache[key] = run_id
+    DEMO_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DEMO_CACHE_PATH.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
@@ -61,6 +94,19 @@ def analyze(
     upwork_text: str = Form(default=""),
     stated_rate: str = Form(default=""),
 ):
+    cv_bytes = cv_file.file.read() if (cv_file is not None and cv_file.filename) else None
+    cache_key = _demo_cache_key(cv_bytes, github_username, upwork_text, stated_rate)
+    cached_run_id = _load_demo_cache().get(cache_key)
+    if cached_run_id:
+        cached = get_analysis_run(cached_run_id)
+        if cached is not None:
+            cached_result, cached_claims = cached
+            return templates.TemplateResponse(
+                request,
+                "result.html",
+                {"result": cached_result, "claims": cached_claims, "benchmark": STUB_BENCHMARK, "run_id": cached_run_id},
+            )
+
     # GitHub is a plain network call, independent of CV/Upwork -- kick it off in a
     # background thread now so it overlaps with the CV/Upwork extraction below
     # instead of waiting its turn after them. Those two stay sequential: both hit
@@ -73,12 +119,12 @@ def analyze(
 
     try:
         cv_claims = []
-        if cv_file is not None and cv_file.filename:
+        if cv_bytes is not None:
             # Persisted, not a temp file that gets deleted after parsing -- a claim's
             # source_span needs to point at a file that still exists later, not just
             # for the duration of this request (Section 2: span grounding needs the
             # original source re-readable at generation time, not just at extraction time).
-            stored_path = save_uploaded_file(cv_file.file.read(), cv_file.filename)
+            stored_path = save_uploaded_file(cv_bytes, cv_file.filename)
             try:
                 cv_claims = parse_cv_to_claims(str(stored_path), freelancer_id="fl_stub")
             except (ScannedDocumentError, InvalidDocumentError) as e:
@@ -132,6 +178,7 @@ def analyze(
     )
 
     run_id = save_analysis_run("fl_stub", claims, result)
+    _save_demo_cache_entry(cache_key, run_id)
 
     return templates.TemplateResponse(
         request, "result.html", {"result": result, "claims": claims, "benchmark": STUB_BENCHMARK, "run_id": run_id}
