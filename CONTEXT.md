@@ -22,6 +22,8 @@ Running log for the AI5K Profile Intelligence System build. Read the top entry f
 **Why:**
 - Explicitly requested as demo-only tooling ("this is just for demo purposes since we're still running locally") — the user is aware this only makes the *exact same* case instant, not general performance, which is the honest scope for a boss-facing local demo.
 
+- Follow-up same day: a cache hit returning in ~0s skipped the analyzing screen entirely (index.html's JS shows it until the page navigates, and navigation happens the instant a response arrives) — for a live demo, going instantly from click to result looked broken, not fast, and skipped the whole "show what's happening" effect the analyzing screen exists for. Added a 10s `time.sleep()` on the cache-hit path specifically (`DEMO_CACHE_ARTIFICIAL_DELAY_SECONDS` in `main.py`) and compressed the client-side step timings in `index.html` from realistic-per-call estimates (130s+ total) down to ~10s total so the step list visibly cycles through all steps in that window. Verified via curl timing (exactly 10s) and a Playwright DOM check confirming all 5 steps progress in order.
+
 **Next steps:**
 - None blocking. If the demo ever needs a second pre-canned case (a different resume/profile), the same seeding pattern (`real_pipeline_direct.py`-style script + `_demo_cache_key`/`_save_demo_cache_entry` from `app.main`) applies directly.
 
